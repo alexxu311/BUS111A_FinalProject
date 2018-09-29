@@ -1,0 +1,19 @@
+#set working directory
+setwd('C:/Users/Surface Pro 4/Desktop/BUS111A')
+getwd()
+
+#read the file into rstudio
+BlackFriday <- read.csv('BlackFriday.csv', header = T)
+
+#setting variable types as factor 
+BlackFriday$User_ID <- as.factor(BlackFriday$User_ID)
+BlackFriday$Product_Category_1 <- as.factor(BlackFriday$Product_Category_1)
+BlackFriday$Occupation <- as.factor(BlackFriday$Occupation)
+BlackFriday$Marital_Status <- as.factor(BlackFriday$Marital_Status)
+
+#look for missing values
+sapply(BlackFriday, function(y) sum(length(which(is.na(y)))))
+
+#eliminate variabels Product_Category_2,Product_Category_3
+BlackFriday[,c("Product_Category_2","Product_Category_3")] <- NULL
+
