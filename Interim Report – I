@@ -42,28 +42,9 @@ ggplot(new,aes(x = Marital_Status, y= Purchase))+ geom_col()+facet_wrap(~Gender)
 
 #Data Visualization by City_Category
 ggplot(new, aes(x=new$City_Category, y=new$Purchase))+geom_col()+
-  ggtitle("Black Friday Purchase across Cities")+ xlab("City Category") + ylab("Dollar Amount Purchase")+
+  ggtitle("Total Black Friday Purchase across Cities")+ xlab("City Category") + ylab("Dollar Amount Purchase")+
   theme(plot.title = element_text(hjust = 0.5,size = 12))
 
 ggplot(new, aes(x=new$City_Category, y=new$Purchase))+geom_boxplot()+
-  ggtitle("Black Friday Purchase across Cities")+ xlab("City Category") + ylab("Dollar Amount Purchase")+
+  ggtitle("Distribution of Black Friday Purchase across Cities")+ xlab("City Category") + ylab("Dollar Amount Purchase")+
   theme(plot.title = element_text(hjust = 0.5,size = 12))
-  
-
-ggplot(new, aes(x = Gender, y = Purchase)) + geom_boxplot() + ylab('Total amount of purchase') +
-  ggtitle('The Distribution of Total Purchase between Gender')
-
-ggplot(new, aes(x=Gender,y=Purchase)) + geom_col() 
-
-
-ggplot(new, aes(x =Age, y = Purchase)) + geom_boxplot() 
-
-ggplot(new, aes(x=Age,y=Purchase)) + geom_col() 
-
-
-ggplot(new, aes(x = Age, y = Purchase,color=Gender)) + geom_boxplot() 
-
-
-ggplot(new, aes(x= Age,y=Purchase,color=Age)) + geom_col() + facet_wrap(~ Gender) +
-  theme(axis.text = element_text(size = 5))
-                                                  
