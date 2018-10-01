@@ -14,6 +14,6 @@ BlackFriday$Marital_Status <- as.factor(BlackFriday$Marital_Status)
 #look for missing values
 sapply(BlackFriday, function(y) sum(length(which(is.na(y)))))
 
-#eliminate variabels Product_Category_2,Product_Category_3
+#eliminate variabels Procduct_Category_1,Product_Category_2,Product_Category_3,and Product_ID
 BlackFriday[,c("Product_Category_2","Product_Category_3","Product_Category_1","Product_ID")] <- NULL
 
