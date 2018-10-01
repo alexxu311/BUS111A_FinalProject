@@ -15,5 +15,5 @@ BlackFriday$Marital_Status <- as.factor(BlackFriday$Marital_Status)
 sapply(BlackFriday, function(y) sum(length(which(is.na(y)))))
 
 #eliminate variabels Product_Category_2,Product_Category_3
-BlackFriday[,c("Product_Category_2","Product_Category_3")] <- NULL
+BlackFriday[,c("Product_Category_2","Product_Category_3","Product_Category_1","Product_ID")] <- NULL
 
