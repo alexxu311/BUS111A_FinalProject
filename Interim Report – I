@@ -16,8 +16,8 @@ sapply(BlackFriday, function(y) sum(length(which(is.na(y)))))
 #Or
 colSums( is.na(BlackFriday))
 
-#eliminate variabels Procduct_Category_1,Product_Category_2,Product_Category_3,and Product_ID
-BlackFriday[,c("Product_Category_2","Product_Category_3","Product_Category_1","Product_ID")] <- NULL
+#eliminate variabels Procduct_Category_1,Product_Category_2,Product_Category_3,Occupation, and Product_ID
+BlackFriday[,c("Product_Category_2","Product_Category_3","Product_Category_1","Product_ID","Occupation")] <- NULL
 
 # combine rows based on User_ID and sum up purchase for each consumer
 a1 <- aggregate(Purchase ~ User_ID, FUN = sum, BlackFriday)
