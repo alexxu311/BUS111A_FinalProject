@@ -32,7 +32,7 @@ ggplot(new,aes(x = Marital_Status, y= Purchase))+ geom_col()+facet_wrap(~Gender)
 
 #Data Visualization by City_Category
 ggplot(new, aes(x=new$City_Category, y=new$Purchase))+geom_col()+
-  ggtitle("Black Friday Purchase across Cities")+ xlab("City Category") + ylab("Dollar Amount Purchase")
+  ggtitle("Total Black Friday Purchase across Cities")+ xlab("City Category") + ylab("Dollar Amount Purchase")
 
 ggplot(new, aes(x=new$City_Category, y=new$Purchase))+geom_boxplot()+
-  ggtitle("Distribution Black Friday Purchase across Cities")+ xlab("City Category") + ylab("Dollar Amount Purchase")
+  ggtitle("Distribution of Black Friday Purchase across Cities")+ xlab("City Category") + ylab("Dollar Amount Purchase")
