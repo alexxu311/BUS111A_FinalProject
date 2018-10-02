@@ -3,7 +3,6 @@ title: "Interim Report – I"
 author: "Alex Xu,Bingyu Xu,Wenlan Xu,Binyao Cheng"
 date: "October 1, 2018"
 output: html_document
-fontsize: 8pt
 ---
 
 ```{r setup, include=FALSE}
