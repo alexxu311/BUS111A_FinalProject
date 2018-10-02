@@ -2,167 +2,95 @@
 title: "Interim Report – I"
 author: "Alex Xu,Bingyu Xu,Wenlan Xu,Binyao Cheng"
 date: "October 1, 2018"
-output: html_document
+output: word_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
-### The URL for our Team GitHub repository is 
-
-### Team: Alex Xu,Bingyu Xu,Wenlan Xu,Binyao Cheng
-### Class: BUS 111A
-### Project: Analyzing Black Friday Purchases for customers and product categories 
-
-
-### 1. Introduction – This should briefly talk about the data problem, why is it interesting to look at this problem (i.e. managerial objective), and the broad goals of your project. 
-
-### This dataset is sampled from a retail store purchases history. The retail store is hoping that the dataset could help them identify the correlation between purchases and different independent variable such as geographical location, age spread, marital status and product categories. Looking through the data, we have found the main problem is that missing values are found in sub product categories and meanwhile we have too limited information about the variable “purchase”, having no idea about the unit or the representation of it and finally, having product categories and occupation written in number would also cause confusion since the representation of the numbers are not stated. Analyzing such dataset could eventually help with the retail store by giving information about consumers’ behaviors so that the retail store could maximize its profit by targeting its customers and providing the most suitable products for them. The broad goals of our project is to study how the consumers’ characteristics correlate with the amount of purchases they made. 
-
+###### The URL for our Team GitHub repository is 
+###### https://github.com/alexxu311/BUS111A_FinalProject.git
+###### Team: Alex Xu,Bingyu Xu,Wenlan Xu,Binyao Cheng
+###### Class: BUS 111A
+###### Project: Analyzing Black Friday Purchases for customers and product categories
+###### 1. Introduction – This should briefly talk about the data problem, why is it interesting to look at this problem (i.e. managerial objective), and the broad goals of your project. 
+###### This dataset is sampled from a retail store purchases history. The retail store is hoping that the dataset could help them identify the correlation between purchases and different independent variable such as geographical location, age spread, marital status and product categories. Looking through the data, we have found the main problem is that missing values are found in sub product categories and meanwhile we have too limited information about the variable “purchase”, having no idea about the unit or the representation of it and finally, having product categories and occupation written in number would also cause confusion since the representation of the numbers are not stated. Analyzing such dataset could eventually help with the retail store by giving information about consumers’ behaviors so that the retail store could maximize its profit by targeting its customers and providing the most suitable products for them. The broad goals of our project is to study how the consumers’ characteristics correlate with the amount of purchases they made. 
 ```{r}
 #load packages
 library(dplyr)
 library(ggplot2)
 library(rmarkdown)
-
 #read the file into rstudio
 BlackFriday <- read.csv('BlackFriday.csv', header = T)
 ```
-
-###2. Data Description – This should “introduce” the dataset to the reader. It should cover the following points – 
-###a. Describe the “conceptual” measure types of the different variables in your data. 
-
-###	There are 12 measure types of the different variables in the dataset. The class of each of #them is shown as below: 
-###	User ID: is stored as integer, a continuous variable. User ID has 5891 observations, representing there are 5891 consumers in this dataset.
-### Product ID: is stored as factor, a categorical and nominal variable. Product ID has 3623 levels, representing 3623 types of products. 
-### Gender: is stored as integer, an interval variable. It has two levels, representing two gender which are female and male. 
-### Age: is stored as factor, a categorical and nominal variable. Age has 7 levels, representing seven age groups.
-###	Occupation: is stored as integer, a continuous and interval variable. Occupation has 20 levels, representing consumers’ 20 different types of occupation. 
-###	City_Category: is stored as factor, a categorical and nominal variable. City_Category has 3 levels, representing 3 types of cities consumer live in. 
-###	Stay_In_Current_City_Years: is stored as factor, a categorical and nominal variable. Stay_In_Current_City_Years has 5 levels, representing 5 length of living in the current city.
-###	Marital Status: is stored as integer, an interval variable. It has two levels, representing two marital status which are married and single. 
-### Product_Category_1/Product_Category_2/Product_Category_3:  is stored as integer, an interval variable. Different numbers indicates different product categories. Product_Category_2 is a sub-category of Product_Category_1, and Product_Category_3 is a sub-category of Product_Category_2.
-### Purchase: is stored as integer, a continuous variable. Each element in Purchase represents a certain amount of purchase for a product in the store.
-
-###b. Data Cleaning – Mention all the steps you took to clean the data. This could include changing the computer data-types of the variables (type coercion), dealing with missing data, filtering out observations, selecting variables, etc. At the end of this process, you would have ONE cleaned dataset.
-
+######2. Data Description – This should “introduce” the dataset to the reader. It should cover the following points – 
+######a. Describe the “conceptual” measure types of the different variables in your data. 
+######	There are 12 measure types of the different variables in the dataset. The class of each of #them is shown as below: 
+######	User ID: is stored as integer, a continuous variable. User ID has 5891 observations, representing there are 5891 consumers in this dataset.
+###### Product ID: is stored as factor, a categorical and nominal variable. Product ID has 3623 levels, representing 3623 types of products. 
+###### Gender: is stored as integer, an interval variable. It has two levels, representing two gender which are female and male. 
+###### Age: is stored as factor, a categorical and nominal variable. Age has 7 levels, representing seven age groups.
+######	Occupation: is stored as integer, a continuous and interval variable. Occupation has 20 levels, representing consumers’ 20 different types of occupation. 
+######	City_Category: is stored as factor, a categorical and nominal variable. City_Category has 3 levels, representing 3 types of cities consumer live in. 
+######	Stay_In_Current_City_Years: is stored as factor, a categorical and nominal variable. Stay_In_Current_City_Years has 5 levels, representing 5 length of living in the current city.
+######	Marital Status: is stored as integer, an interval variable. It has two levels, representing two marital status which are married and single. 
+###### Product_Category_1/Product_Category_2/Product_Category_3:  is stored as integer, an interval variable. Different numbers indicates different product categories. Product_Category_2 is a sub-category of Product_Category_1, and Product_Category_3 is a sub-category of Product_Category_2.
+###### Purchase: is stored as integer, a continuous variable. Each element in Purchase represents a certain amount of purchase for a product in the store.
+######b. Data Cleaning – Mention all the steps you took to clean the data. This could include changing the computer data-types of the variables (type coercion), dealing with missing data, filtering out observations, selecting variables, etc. At the end of this process, you would have ONE cleaned dataset.
 ```{r}
 #setting variable types as factor 
 BlackFriday$User_ID <- as.factor(BlackFriday$User_ID)
 BlackFriday$Product_Category_1 <- as.factor(BlackFriday$Product_Category_1)
 BlackFriday$Occupation <- as.factor(BlackFriday$Occupation)
 BlackFriday$Marital_Status <- as.factor(BlackFriday$Marital_Status)
-
 #look for missing values
-sapply(BlackFriday, function(y) sum(length(which(is.na(y)))))
-#Or
 colSums(is.na(BlackFriday))
-
 #eliminate variabels Procduct_Category_1,Product_Category_2,Product_Category_3,Occupation, and Product_ID
 BlackFriday[,c("Product_Category_2","Product_Category_3","Product_Category_1","Product_ID","Occupation")] <- NULL
-
 # combine rows based on User_ID and sum up purchase for each consumer
 a1 <- aggregate(Purchase ~ User_ID, FUN = sum, BlackFriday)
 new <- BlackFriday %>% distinct(User_ID, .keep_all = TRUE) 
 new[,8] <- a1[,2]
 ```
-
-### First, we change the computer data-types of the variables. 
-### We changed the data-types of “User_ID”, ” Occupation”, “Marital_Status”, “Product_Category_1”, “Product_Category_2”, “Product_Category_3” from integer to factor. 
-### The reason for the change is that all those variables are not continuous but discrete, 
-### and the number values of these categorical variables do not represent the amount but different categories within each variable. 
-### Then, we looked for the missing data. 
-### From the table we could see that there is a considerable amount of missing data in “Product_Category_2” and “Product_Category_3”. 
-### Due to the missing data, the dataset cannot generate much information about the customer behavior in terms of product categories. 
-### "Occupation" is eliminated, considering it does not provide information on the specific occupation each level represents, and graphs show that purchase are comparable across each occupation. 
-### Similarly, we aim to examine consumer behavior rather than product characteristics, so “Product_ID” is omitted from the dataset. 
-### Therefore, we deleted the columns Product_ID, Product_Category_1,Product_Category_2 and Product_Category_3 
-### In order to link the total dollar amount of purchase to each consumer, we merge the rows based on User_ID and sum up all purchases made by the same consumer.  
-### And we only focused on analyzing consumer behavior in terms of their gender, age, etc which the variables directly depend on customers. 
-
-###3. Summary statistics and Data Visualizations
-
+###### First, we changed the data-types of “User_ID”, ” Occupation”, “Marital_Status”, “Product_Category_1”, “Product_Category_2”, “Product_Category_3” from integer to factor. The reason for the change is that the number values of these categorical variables do not represent the amount but different categories within each variable. Then, we looked for the missing data. From the table we could see that there is a considerable amount of missing data in “Product_Category_2” and “Product_Category_3”. Due to the missing data, the dataset cannot generate much information about the customer behavior in terms of product categories. "Occupation" is eliminated, considering it does not provide information on the specific occupation each level represents, and graphs show that purchase are comparable across each occupation. Similarly, we aim to examine consumer behavior rather than product characteristics, so “Product_ID” is omitted from the dataset. Therefore, we deleted the columns Product_ID, Product_Category_1,Product_Category_2 and Product_Category_3. In order to link the total dollar amount of purchase to each consumer, we merge the rows based on User_ID and sum up all purchases made by the same consumer. And we only focused on analyzing consumer behavior in terms of their gender, age, etc which the variables directly depend on customers. 
+######3. Summary statistics and Data Visualizations
 ```{r}
 #Data Visualization by City_Category
 ggplot(new, aes(x=City_Category, y=Purchase,col=City_Category))+geom_col()+
-  ggtitle("Total Black Friday Purchase across Cities")+ xlab("City Category") + ylab("Dollar Amount Purchase")+
-  theme(plot.title = element_text(hjust = 0.5,size = 12))
-
+  ggtitle("Total Black Friday Purchase across Cities")+ xlab("City Category") + ylab("Dollar Amount Purchase")+theme(plot.title = element_text(hjust = 0.5,size = 12))+
+    theme(plot.margin = unit(c(0,0,0,0), "cm"))
 ggplot(new, aes(x=City_Category, y=Purchase,col = City_Category))+geom_boxplot()+
-  ggtitle("Distribution of Black Friday Purchase across Cities")+ xlab("City Category") + ylab("Dollar Amount Purchase")+
-  theme(plot.title = element_text(hjust = 0.5,size = 12))
+  ggtitle("Distribution of Black Friday Purchase across Cities")+ xlab("City Category") + ylab("Dollar Amount Purchase")+ theme(plot.title = element_text(hjust = 0.5,size = 12))
 ```
 
-### City_Category
-### Variable "City_Category" shows whether consumers from different types of cities vary in dollar amount of purchase on Black Friday
-### Knowing consumers from which type of city make the most purchase, retail stores can target to consumers from the most profitable area
-### Since "City_Category" is a categorical variable, we use bar plot to compare the total dollar amount of purchase across consumers from different kinds of cities,
-### Consumers from C City make the most dollar amount of purchase, followed by B City and then A City.
-### Box plot shows the distribution of dollar amount of purchase within consumers from each city category. 
-### The median, 25th and 75th percentile are comparable for the three types of cities. 
-### All types of cities have large outliers, and B City has one extreme outlier who makes the most purchase out of all consumers.
-### While the distribution of purchase from consumers live in C City is similar to that of A and B City, consumers from C City contribute the most to the total dollar amount of purchase.
-### This implies that there are consumers from C City compared to other cities.
-
+###### Variable "City_Category" shows whether consumers from different types of cities vary in dollar amount of purchase on Black Friday. Knowing consumers from which type of city make the most purchase, retail stores can target to consumers from the most profitable area。 Since "City_Category" is a categorical variable, we use bar plot to compare the total dollar amount of purchase across consumers from different kinds of cities，Consumers from C City make the most dollar amount of purchase, followed by B City and then A City. Box plot shows the distribution of dollar amount of purchase within consumers from each city category. The median, 25th and 75th percentile are comparable for the three types of cities. All types of cities have large outliers, and B City has one extreme outlier who makes the most purchase out of all consumers. While the distribution of purchase from consumers live in C City is similar to that of A and B City, consumers from C City contribute the most to the total dollar amount of purchase. This implies that there are consumers from C City compared to other cities.
 ```{r}
 # Statistics and Data Visualization by City and Stay_In_Current_City_Years
 ggplot(new, aes(x = Stay_In_Current_City_Years, y = Purchase,col=Stay_In_Current_City_Years))+ geom_col()+
   facet_wrap(~City_Category)+ ggtitle("Histogram of Cities and Years customers stayed in cities ~ Purchase")+theme(plot.title = element_text(hjust = 0.5,size = 12)) + xlab("Years customers stayed in cities")
 ```
 
-### We choose the variable “City_Category” and “Stay_In_Current_City_Years” because they can give the retailer clear information about the relationships between customers purchases and the city they are living.
-### We select column bar as the visualization because it clearly shows the amount of purchases across consumers from different cities and with different years living in the cities.
-### We choose to put “Stay_In_Current_City_Years” on x-axis and “Purchase” on y-axis and faceted the graph by cities. 
-### In this way, we can answer the following questions:
-###    Do the cities have the similar patterns in terms of the relationship between “Stay_In_Current_City_Years” and “Purchases”?
-###    For the buyers who contribute the most purchases, how long have those buyers lived in their cities? 
-### Although the amount of purchases is different within different cities, the patterns come to similar that 
-### people who stay in their current cities for one year purchased most.
-
+###### We choose the variable “City_Category” and “Stay_In_Current_City_Years” because they can give the retailer clear information about the relationships between customers purchases and the city they are living. We select column bar as the visualization because it clearly shows the amount of purchases across consumers from different cities and with different years living in the cities. We choose to put “Stay_In_Current_City_Years” on x-axis and “Purchase” on y-axis and faceted the graph by cities. In this way, we can answer the following questions: Do the cities have the similar patterns in terms of the relationship between “Stay_In_Current_City_Years” and “Purchases”? For the buyers who contribute the most purchases, how long have those buyers lived in their cities? Although the amount of purchases is different within different cities, the patterns come to similar that people who stay in their current cities for one year purchased most.
 ```{r}
 # Statistics and Data Visualization by Marital Status
 ggplot(new,aes(x = Marital_Status, y= Purchase,col=Marital_Status))+ geom_col()+facet_wrap(~Gender)+ggtitle("Histogram of Gender, Marital status ~ Purchase")+
   theme(plot.title = element_text(hjust = 0.5,size = 12)) + xlab("Marital Status")
 ```
 
-### We choose the variable “Marital_Status” and “Purchase” because the retailer could know if purchasing decisions are affected the marital status of customers.
-### We select column bar as visualization because “Marital_Status” is a factor and bar can clearly shows the amount of “Purchases” within each category.
-### We select column bar as the visualization because it can clearly show the amount of “Purchases” within each category.
-### We put “Marital_Status” on x-axis and “Purchase” on y-axis and faceted by genders.
-### In this way, we can answer the following questions:
-###   Among female consumers, which group of customers consume more? Married or unmarried?
-###   Among male consumers, which group of customers consume more? Married or unmarried?
-### Unmarried customers contribute to more purchases no matter male or female.
-### Men make substantially more purchase than women.
-
+###### We choose the variable “Marital_Status” and “Purchase” because the retailer could know if purchasing decisions are affected the marital status of customers. We select column bar as visualization because “Marital_Status” is a factor and bar can clearly shows the amount of “Purchases” within each category. We select column bar as the visualization because it can clearly show the amount of “Purchases” within each category. We put “Marital_Status” on x-axis and “Purchase” on y-axis and faceted by genders.In this way, we can answer the following questions: Among female consumers, which group of customers consume more? Married or unmarried? Among male consumers, which group of customers consume more? Married or unmarried? Unmarried customers contribute to more purchases no matter male or female. Men make substantially more purchase than women.
 ```{r}
 # Statistics and Data Visualization of age and gender
 ggplot(new, aes(x = Age, y = Purchase,color=Gender)) + geom_boxplot() + ggtitle("Boxplot of Age and Gender ~ Purchase")+theme(plot.title = element_text(hjust = 0.5,size = 12))
 ```
 
-### we consider age and gender together and draw plots of different age groups grouped by genderbecause age and gender are closely related factors in determining consumption b ehaviors. For example, a man of 0-17 yrs old have different purchasing power from that of a 55+ yrs old woman.
-### “Gender” and “Age” are discrete variables , and “Purchase” is a continuous variable.If we want to show the distribution of total amount of purchase between gender and among age, we need to use boxplot.
-### Therefore, we can know which age group has higher purchasing power and more preferable of this store, and which sex makes more contribution.
-### We want to answer the question that 'what is the distribution of purchase between different age group?',and 'Are male and female consumers spend same amount of money in this store for each age group?'
-### Our conclusion is that since male consumers have more outliers than that of female consumers, meaning the distribution of purchase of male consumers are more disperse.
-
+###### we consider age and gender together and draw plots of different age groups grouped by genderbecause age and gender are closely related factors in determining consumption b ehaviors. For example, a man of 0-17 yrs old have different purchasing power from that of a 55+ yrs old woman. “Gender” and “Age” are discrete variables , and “Purchase” is a continuous variable.If we want to show the distribution of total amount of purchase between gender and among age, we need to use boxplot.Therefore, we can know which age group has higher purchasing power and more preferable of this store, and which sex makes more contribution. We want to answer the question that 'what is the distribution of purchase between different age group?',and 'Are male and female consumers spend same amount of money in this store for each age group?'Our conclusion is that since male consumers have more outliers than that of female consumers, meaning the distribution of purchase of male consumers are more disperse.
 ```{r}
 ggplot(new, aes(x= Age,y=Purchase,color=Age)) + geom_col() + facet_wrap(~ Gender) +
   theme(axis.text = element_text(size = 5))+ ggtitle("Boxplot of Age and Gender ~ Purchase") + theme(plot.title = element_text(hjust = 0.5,size = 12))
 ```
 
-### “Gender” and “Age” are discrete variables , and “Purchase” is a continous variable.So We draw barplot of female and male consumers among different age group since we could compare the amount of purchase among age groups as well as between gender altogether. In addition, we could know the age distribution between different men and women.
-### We want to answer the question that 'Which gender group and age group have the strongest purchasing power?'and 'Are consumption behaviors different in each age group for male and female consumers?'
-### Our conclusion is that regardless of gender, 26-35 yrs old people have the strongest purchasing power.
-### Since the purchase of male consumers of all age groups exceeds all age groups of female consumers, we conclude that overall male consumers have stronger purchasing power than female. In addition, the distribution of dollar amount of purchase among different age groups of two genders are approximately the same, which indicates that gender does not influence the difference in purchasing power between male and female consumers.
+###### “Gender” and “Age” are discrete variables , and “Purchase” is a continous variable.So We draw barplot of female and male consumers among different age group since we could compare the amount of purchase among age groups as well as between gender altogether. In addition, we could know the age distribution between different men and women. We want to answer the question that 'Which gender group and age group have the strongest purchasing power?'and 'Are consumption behaviors different in each age group for male and female consumers?' Our conclusion is that regardless of gender, 26-35 yrs old people have the strongest purchasing power.Since the purchase of male consumers of all age groups exceeds all age groups of female consumers, we conclude that overall male consumers have stronger purchasing power than female. In addition, the distribution of dollar amount of purchase among different age groups of two genders are approximately the same, which indicates that gender does not influence the difference in purchasing power between male and female consumers.
 
-### How did you improve the graph from its initial ggplot2 output?
-### To improve the graphs, we first decide to use facet to include another independent variable into the graph and colored by variable on x-axis so that we can look at the relationship between two related independent variable and one dependent variable which is Purchase for all the graphs. Then, we have used ggtitle,xlab,ylab to add appropriate titles and labels. Finally, we moderated the size of titles and labels and center the title as well. 
-
-###Conclusion
-
-### From the data pattern explained above, we conclude that among all the customers in the dataset, customers who live in the City C have the largest purchasing power over customers in City A and City B. For all the three cities, customers who have lived in their current city for one year contribute the most to the dollar amount of purchases; therefore, this group of consumers are likely to spend the most during the Black Friday. By visualizing the data in terms of gender and age, first, we can conclude that male consumers make more purchases than females in all age groups. Second, regardless of gender, customers who are between 26 and 35 years old spend the most. In addition, the visualization of the relationship between dollar amount of purchase and marital status and gender indicates that single males make more purchases than any other groups of customers. And within both married and single groups, males make more purchases than females. 
-### The results have a few implications for firm’s manager. 
-### First, this report could help the manager know consumers’ needs. With the analysis of which group of people make the most purchase, the manager could change the brands and products they order from the supplier in order to bring larger profits.  They might reduce products that are not preferable by people who have the strongest purchasing power and increase products that could appropriately fulfill those people’s needs. This could also be an indication for next Black Friday’s stock for those people would certainly come back to the store and the store need more stocks of products those people like.
-### Second, This result could also be an implication of the marketing campaign for next year. The manager could get a better understanding of the identity of the majority of consumers from the report. Therefore, the manager could change marketing campaign that attract more people of interest.
+###### To improve the graphs, we first decide to use facet to include another independent variable into the graph and colored by variable on x-axis so that we can look at the relationship between two related independent variable and one dependent variable which is Purchase for all the graphs. Then, we have used ggtitle,xlab,ylab to add appropriate titles and labels. Finally, we moderated the size of titles and labels and center the title as well. 
+######Conclusion
+###### From the data pattern explained above, we conclude that among all the customers in the dataset, customers who live in the City C have the largest purchasing power over customers in City A and City B. For all the three cities, customers who have lived in their current city for one year contribute the most to the dollar amount of purchases; therefore, this group of consumers are likely to spend the most during the Black Friday. By visualizing the data in terms of gender and age, first, we can conclude that male consumers make more purchases than females in all age groups. Second, regardless of gender, customers who are between 26 and 35 years old spend the most. In addition, the visualization of the relationship between dollar amount of purchase and marital status and gender indicates that single males make more purchases than any other groups of customers. And within both married and single groups, males make more purchases than females. The results have a few implications for firm’s manager. First, this report could help the manager know consumers’ needs. With the analysis of which group of people make the most purchase, the manager could change the brands and products they order from the supplier in order to bring larger profits.  They might reduce products that are not preferable by people who have the strongest purchasing power and increase products that could appropriately fulfill those people’s needs. This could also be an indication for next Black Friday’s stock for those people would certainly come back to the store and the store need more stocks of products those people like. Second, This result could also be an implication of the marketing campaign for next year. The manager could get a better understanding of the identity of the majority of consumers from the report. Therefore, the manager could change marketing campaign that attract more people of interest.
