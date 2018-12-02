@@ -1,1 +1,418 @@
+---
+title: "FianlReport"
+author: "Alex Xu,Bingyu Xu,Wenlan Xu,Binyao Cheng"
+date: "Dec 4, 2018"
+output:
+  word_document: default
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+ The URL for our Team GitHub repository is 
+ https://github.com/alexxu311/BUS111A_FinalProject.git
+ Team: Alex Xu,Bingyu Xu,Wenlan Xu,Binyao Cheng
+ Class: BUS 111A
+ Project: Analyzing Black Friday Purchases for customers and product categories
+ 
+##Part one
+####Introduction 
+This dataset is sampled from a retail store purchases history. The retail store is hoping that the dataset could help them identify the correlation between purchases and different independent variable such as geographical location, age spread, marital status and product categories. Looking through the data, we have found the main problem is that missing values are found in sub product categories and meanwhile we have too limited information about the variable “purchase”, having no idea about the unit or the representation of it and finally, having product categories and occupation written in number would also cause confusion since the representation of the numbers are not stated. Analyzing such dataset could eventually help with the retail store by giving information about consumers’ behaviors so that the retail store could maximize its profit by targeting its customers and providing the most suitable products for them. The broad goals of our project is to study how the consumers’ characteristics correlate with the amount of purchases they made. 
+
+```{r}
+setwd("C:/Users/alexx/OneDrive/桌面/Rprojects")
+
+#load packages
+library(dplyr)
+library(ggplot2)
+library(rmarkdown)
+library(gridExtra)
+#read the file into rstudio
+BlackFriday <- read.csv('BlackFriday.csv', header = T)
+```
+####2a. Describe the "conceptual" measure types of the different variables in your data. 
+
+There are 12 measure types of the different variables in the dataset. The class of each of them is shown as below: 
+  User ID: is a factor, a  categorical nominal variable. User ID has 5891 levels, representing 5891 consumers in the dataset.
+Product ID: is a factor, a  categorical nominal variable. Product ID has 3623 levels, representing 3623 SKU in the dataset.
+Gender: is a factor, a categorical nominal variable, representing categories male and female. 
+Age: is a factor, a categorical nominal variable. Age has seven levels, each representing an age range.
+Occupation: is a factor, a categorical nominal variable. Occupation has 20 levels, representing consumers’ 20 different types of occupation. 
+City_Category: is a factor, a categorical nominal variable. City_Category has 3 levels, representing 3 types of cities consumer live in. 
+Stay_In_Current_City_Years: is a factor, a categorical nominal variable. Stay_In_Current_City_Years has 5 levels, representing 5 length of living in the current city.
+Marital Status: is a factor, a categorical nominal variable. It has two levels, representing two marital status which are married and single. 
+Product_Category_1/Product_Category_2/Product_Category_3: are factora, discrete nominal variables, representing categories of product.
+Purchase: is stored as integer. 
+
+####b. Data Cleaning – Mention all the steps you took to clean the data
+
+First, we change the computer data-types of the variables. 
+We change the data-types of "User_ID", " Occupation", "Marital_Status", "Product_Category_1", "Product_Category_2", "Product_Category_3", "Product_ID", and "Gender" to factor. 
+The reason for the change is that all those variables are discrete and nominal, 
+and the number values of these categorical variables do not represent the amount but different categories within each variable. 
+Then, we look for the missing data. 
+```{r}
+colSums( is.na(BlackFriday))
+```
+From the table we can see that there is a considerable amount of missing data in "Product_Category_2" and "Product_Category_3". 
+Due to the missing data, the dataset cannot generate much information about the customer behavior in terms of product categories. 
+Therefore, we delete the columns "Product_ID", "Product_Category_2" and "Product_Category_3" 
+In order to examine consumer behaviors, we merge the rows based on "User_ID" and sum up all purchases made by the same consumer. This new dataset pertaining to each consumer provides information on how much does each consumer spend in total and how many purchases each consumer made during Black Friday.
+In order to examine which products are more profitable to sellers, we create another dataset pertaining to each category of products. This new dataset provides information on the total sales each category of products made for sellers, and the number of consumers attracted by each category of products.  
+Based on the cleaned data, we focus on analyzing both consumer and product characteristics and how different characteristics contribute to Black Friday sales for retail stores. 
+```{r}
+#eliminate variabels Product_Category_2,Product_Category_3 due to missing variables
+BlackFriday[,c("Product_Category_2","Product_Category_3")] <- NULL
+
+#setting variable types as factor 
+BlackFriday$User_ID <- as.factor(BlackFriday$User_ID)
+BlackFriday$Occupation <- as.factor(BlackFriday$Occupation)
+BlackFriday$Marital_Status <- as.factor(BlackFriday$Marital_Status)
+BlackFriday$Gender <- as.factor(BlackFriday$Gender)
+BlackFriday$Product_Category_1 <- as.factor(BlackFriday$Product_Category_1)
+BlackFriday$Product_ID <- as.factor(BlackFriday$Product_ID)
+
+# create a new consumer dataframe
+# get number of purchases made by each consumer
+PurchaseFreq <- as.data.frame(table(BlackFriday$User_ID))
+# get total dolloar amount of purchase made by each consumer
+consumerPurchase <- aggregate(Purchase ~ User_ID, FUN = sum, BlackFriday)
+consumerData <- BlackFriday %>% distinct(User_ID, .keep_all = TRUE) 
+# attach newly created columns to original data frame accoording to consumerID
+consumerData <- merge(consumerData, PurchaseFreq, by.x="User_ID", by.y="Var1")
+consumerData <- merge(consumerData, consumerPurchase, by="User_ID")
+consumerData$Purchase.x <- NULL
+consumerData$Product_ID <- NULL
+#change the name of newly created columns
+colnames(consumerData)[colnames(consumerData)=="Freq"] <- "PurchaseNumber"
+colnames(consumerData)[colnames(consumerData)=="Purchase.y"] <- "TotalPurchase"
+
+# create a new product dataframe
+# get the number of times each category of product is purchased by consumer
+productFreq <- as.data.frame(table(BlackFriday$Product_Category_1))
+# get the total dollar amount consumers spent on each category of product
+productPurchase <- aggregate(Purchase~Product_Category_1, FUN=sum, BlackFriday)
+productData <- BlackFriday %>% distinct(Product_Category_1, .keep_all=TRUE)
+productData <- productData %>% arrange(Product_Category_1)
+# delete variables that are not related to product
+productData$User_ID <- NULL
+productData$Gender <- NULL
+productData$Age <- NULL
+productData$Occupation <- NULL
+productData$City_Category <- NULL
+productData$Stay_In_Current_City_Years <- NULL
+productData$Marital_Status <- NULL
+# attach newly created columns to original data frame
+productData$Purchase <- productPurchase$Purchase
+productData$PurchaseNumber <-productFreq$Freq
+productData$Product_ID <- NULL
+#change the name of created variables
+colnames(productData)[colnames(productData)=="Purchase"] <- "TotalPurchase"
+
+consumerUnique <- BlackFriday %>% distinct(User_ID, .keep_all = TRUE)
+# for each product, show how many consumers purchased this product
+consumerPerProduct <- as.data.frame(table(consumerUnique$Product_Category_1))
+productData <- merge(productData, consumerPerProduct, by.x="Product_Category_1", by.y="Var1")
+colnames(productData)[colnames(productData)=="Freq"] <- "consumerPerProduct"
+# for each "Product_Category_1", show how many different items there were
+uniqueProductID <- BlackFriday %>% distinct(Product_ID, .keep_all=TRUE)
+itemNumber <- as.data.frame(table(uniqueProductID$Product_Category_1))
+productData <- merge(productData, itemNumber, by.x="Product_Category_1", by.y="Var1")
+#change the name of created variables
+colnames(productData)[colnames(productData)=="Freq"] <- "itemNumber"
+#make the dataframe prodectData ordered by Product_Category_1
+productData <- productData[order(productData$Product_Category_1),]
+```
+From here, only consumerdata and productdata will be used as our dataframes.
+
+####3. Summary statistics and Data Visualizations
+
+```{r}
+#Data Visualization by product_category1
+p1 <- ggplot(productData,aes(x=Product_Category_1,y=itemNumber)) + geom_col() + 
+  ggtitle("Number of item types for each PC1")+ xlab("Product Category 1") +
+  ylab("Number of item types")+ theme(plot.title = element_text(hjust = 0.5,size = 12))
+
+p2 <- ggplot(productData,aes(x=Product_Category_1,y=TotalPurchase)) + geom_col() + 
+  ggtitle("Total revenue for each PC1")+ xlab("Product Category 1") +
+  ylab("Total Revenue($)")+ theme(plot.title = element_text(hjust = 0.5,size = 12))
+
+p3 <- ggplot(productData,aes(x=Product_Category_1,y=PurchaseNumber)) + geom_col() + 
+  ggtitle("Number of purchases for each PC1")+ xlab("Product Category 1") +
+  ylab("Number of Purchases made")+ theme(plot.title = element_text(hjust = 0.5,size = 12))
+
+p4 <- ggplot(productData,aes(x=Product_Category_1,y=consumerPerProduct)) + geom_col() + 
+  ggtitle("Number of consumers for each PC1")+ xlab("Product Category 1") +
+  ylab("Number of consumers")+ theme(plot.title = element_text(hjust = 0.5,size = 12))
+grid.arrange(p1,p2,nrow = 1)
+grid.arrange(p3,p4,nrow = 1)
+```
+
+By visualization, we can tell which product is the most popular and profitable and therefore the store could put up more such products. From the graph, we found that the most popular product categries are 1,5 and 8, which are also the top three profitable categories as well. Category 1 brought the store highest revenue and also the most number of consumers. Category 2 shows the most number of purchase but only half of 1's revenue indicates a lower price.
+```{r}
+p1 <- ggplot(consumerData, aes(x=City_Category, y=TotalPurchase,col=City_Category))+geom_col()+
+    ggtitle("Total Purchase across Cities")+ xlab("City Category") + ylab("Total  Purchase ($)")+theme(plot.title = element_text(hjust = 0.5,size = 12))+
+    theme(plot.margin = unit(c(0,0,0,0), "cm"))
+p2 <- ggplot(consumerData, aes(x=City_Category, y=TotalPurchase,col = City_Category))+geom_boxplot()+
+     ggtitle("Distribution of Total Purchase across Cities")+ xlab("City Category") + ylab("Total Dollar Amount Purchase ($)")+ theme(plot.title = element_text(hjust = 0.5,size = 12))
+grid.arrange(p1,p2,nrow = 1)
+```
+
+Variable "City_Category" shows whether consumers from different types of cities vary in dollar amount of purchase on Black Friday. Knowing consumers from which type of city make the most purchase, retail stores can target to consumers from the most profitable area.
+Since "City_Category" is a categorical variable, we use bar plot to compare the total dollar amount of purchase made by consumers from different kinds of cities. Consumers from C City make the most dollar amount of purchase, followed by B City and then A City. The median, 25th and 75th percentile are comparable for the three types of cities. All types of cities have large outliers, and B City has one extreme outlier who makes the most purchase out of all consumers. While the distribution of purchase from consumers live in C City is similar to that of A and B City, consumers from C City contribute the most to the total dollar amount of purchase. This implies that there are more consumers from C City compared to other cities.
+```{r}
+table(consumerData$City_Category)
+```
+The frequency table confirms that City C, with 3,139 consumers, contains the majority of consumers, compared to City A which have 1,045 consumers and City B with 1,707 consumers.
+```{r}
+p1 <- ggplot(consumerData, aes(Occupation))+geom_bar()+ggtitle("Distribution of Occupation")+ylab("Number of Consumers")+theme(plot.title = element_text(hjust = 0.5,size = 12))
+p2 <- ggplot(consumerData, aes(x=Occupation, y=TotalPurchase))+geom_boxplot()+ylab("Total Purchase ($)")+ggtitle("Total Purchase ($) across Occupations")+theme(plot.title = element_text(hjust = 0.5,size = 12))
+grid.arrange(p1,p2,nrow = 1)
+```
+
+Variable "Occupation" indicates consumer occupation, from which we can examine whether purchasing behaviors differ across consumers with different occupations. From the bar graph, the number of consumers varies largely among occupations. While occupation 4 has more than 700 consumers, occupation 8 only has less than 20 consumers. It is likely that consumers with certain occupation, such as 4 and 7, are more likely to engage in Black Friday purchases. It is also noticeable that almost 700 consumers do not report their occupations. Since "Occupation" is a categorical variable, we use box plot to compare difference in total purchases between different occupations. The graph indicates that distribution of total purchase varies across occupations. While occupation 5 is the most dispersed, occupation 9 is the least dispersed. Consumers with occupation 20 has the highest  median spending, and consumers with occupation 9 and 13 had the lowest median spending. Most of the occupations have skewed distribution, as 75 percentile is distorted far away from the median and 25 percentile is closer to the median. One extreme example is occupation 8. Consumers with occupation 8 have the lowest median purchase, but the distribution is skewed in that consumers above 75 percentile contribute disproportionately more to the purchases, while consumers below 25 percentile make purchases similar to the median.    
+```{r}
+# Statistics and Data Visualization by City and Stay_In_Current_City_Years
+ggplot(consumerData, aes(x=Stay_In_Current_City_Years, y=TotalPurchase,col = Stay_In_Current_City_Years))+
+  geom_boxplot()+facet_wrap(~City_Category)+
+  ggtitle("Distribution of Total Purchase across Number of Years Staying in the City")+ 
+  xlab("Years Staying in Current City") + ylab("Total Dollar Amount Purchase ($)")+ theme(plot.title = element_text(hjust = 0.5,size = 12))
+```
+
+ We choose the variable "City_Category" and "Stay_In_Current_City_Years" because they can give the retailer clear information about the relationships between customers purchases and the city they are living. We select column bar as the visualization because it clearly shows the amount of purchases across consumers from different cities and with different years living in the cities. We choose to put "Stay_In_Current_City_Years" on x-axis and "Purchase" on y-axis and faceted the graph by cities. In this way, we can answer the following questions: Do the cities have the similar patterns in terms of the relationship between "Stay_In_Current_City_Years" and "Purchases"? For the buyers who contribute the most purchases, how long have those buyers lived in their cities? Although the amount of purchases is different within different cities, it is hard to see which level of Stay_In_Current_City_Years contributes the most dollar purchases within each city.
+```{r}
+# Statistics and Data Visualization by Marital Status
+ggplot(consumerData,aes(x = Marital_Status, y= TotalPurchase, col= Marital_Status))+ geom_col()+facet_wrap(~Gender)+
+  xlab("Marital Status")+ ylab("Total Dollar Amount Purchase ($)")+ggtitle("Distribution of Total Purchase between Marital Status")+ 
+  theme(plot.title = element_text(hjust = 0.5,size = 12))
+```
+
+ We choose the variable "Marital_Status" and "Purchase" because the retailer could know if purchasing decisions are affected the marital status of customers. We select column bar as visualization because "Marital_Status" is a factor and bar can clearly shows the amount of "Purchases" within each category. We select column bar as the visualization because it can clearly show the amount of "Purchases" within each category. We put "Marital_Status" on x-axis and "Purchase" on y-axis and faceted by genders.In this way, we can answer the following questions: Among female consumers, which group of customers consume more? Married or unmarried? Among male consumers, which group of customers consume more? Married or unmarried? Unmarried customers contribute to more purchases no matter male or female. Men make substantially more purchase than women.
+```{r}
+# Statistics and Data Visualization of age and gender
+ggplot(consumerData, aes(x= Age)) + geom_bar() + 
+  theme(axis.text = element_text(size = 5))+ ggtitle("Total  Number of People for Each Age Group") + 
+  facet_wrap(~Gender)+ xlab("Age Group") + ylab("Total Numbers of People in the dataset")+ 
+  theme(plot.title = element_text(hjust = 0.5,size = 12))
+ggplot(consumerData, aes(x= Age,y=TotalPurchase,color=Gender)) + geom_boxplot() + 
+  theme(axis.text = element_text(size = 5))+ ggtitle("Distribution of Total Purchase between Genders across AgeGroups") + 
+ xlab("Age Groups, distinguished by gender") + ylab("Total Dollar Amount Purchase ($)")+ 
+  theme(plot.title = element_text(hjust = 0.5,size = 12))
+ggplot(consumerData, aes(x= Age,y=TotalPurchase,color=Age)) + geom_col() + 
+  theme(axis.text = element_text(size = 5))+ ggtitle("Distribution of Total Dollar Purchase across age groups") + 
+  facet_wrap(~Gender) + xlab("Gender, distinguished by age groups") + ylab("Total Dollar Amount Purchase ($)")+ 
+  theme(plot.title = element_text(hjust = 0.5,size = 12))
+```
+
+ we consider age and gender together and draw plots of different age groups grouped by genderbecause age and gender are closely related factors in determining consumption b ehaviors. For example, a man of 0-17 yrs old have different purchasing power from that of a 55+ yrs old woman. "Gender" and "Age" are discrete variables , and "Purchase" is a continuous variable.If we want to show the distribution of total amount of purchase between gender and among age, we need to use boxplot.Therefore, we can know which age group has higher purchasing power and more preferable of this store, and which sex makes more contribution. We want to answer the question that 'what is the distribution of purchase between different age group?',and 'Are male and female consumers spend same amount of money in this store for each age group?'Our conclusion is that since male consumers have more outliers than that of female consumers, meaning the distribution of purchase of male consumers are more disperse.
+
+ "Gender" and "Age" are discrete variables , and "Purchase" is a continous variable.So We draw barplot of female and male consumers among different age group since we could compare the amount of purchase among age groups as well as between gender altogether. In addition, we could know the age distribution between different men and women. We want to answer the question that 'Which gender group and age group have the strongest purchasing power?'and 'Are consumption behaviors different in each age group for male and female consumers?' Our conclusion is that regardless of gender, 26-35 yrs old people have the strongest purchasing power.Since the purchase of male consumers of all age groups exceeds all age groups of female consumers, we conclude that overall male consumers have stronger purchasing power than female. In addition, the distribution of dollar amount of purchase among different age groups of two genders are approximately the same, which indicates that gender does not influence the difference in purchasing power between male and female consumers.
+
+####Conclusion on first part
+ To improve the graphs, we first decide to use facet to include another independent variable into the graph and colored by variable on x-axis so that we can look at the relationship between two related independent variable and one dependent variable which is Purchase for all the graphs. Then, we have used ggtitle,xlab,ylab to add appropriate titles and labels. Finally, we moderated the size of titles and labels and center the title as well. 
+Conclusion
+ From the data pattern explained above, we conclude that among all the customers in the dataset, customers who live in the City C have the largest purchasing power over customers in City A and City B. For all the three cities, customers who have lived in their current city for one year contribute the most to the dollar amount of purchases; therefore, this group of consumers are likely to spend the most during the Black Friday. By visualizing the data in terms of gender and age, first, we can conclude that male consumers make more purchases than females in all age groups. Second, regardless of gender, customers who are between 26 and 35 years old spend the most. In addition, the visualization of the relationship between dollar amount of purchase and marital status and gender indicates that single males make more purchases than any other groups of customers. And within both married and single groups, males make more purchases than females. The results have a few implications for firm's manager. First, this report could help the manager know consumers' needs. With the analysis of which group of people make the most purchase, the manager could change the brands and products they order from the supplier in order to bring larger profits.  They might reduce products that are not preferable by people who have the strongest purchasing power and increase products that could appropriately fulfill those people's needs. This could also be an indication for next Black Friday's stock for those people would certainly come back to the store and the store need more stocks of products those people like. Second, This result could also be an implication of the marketing campaign for next year. The manager could get a better understanding of the identity of the majority of consumers from the report. Therefore, the manager could change marketing campaign that attract more people of interest.
+ 
+##Part two - Hypothesis Testing and Regression
+
+####City Categories
+```{r}
+lm_City=lm(log(TotalPurchase)~factor(City_Category),data=consumerData)
+summary(lm_City)
+```
+This regression test the null hypothesis that total purchase from B and C city respectively are not different from total purchase from A City and such null hypothesis is rejected
+The t-test results suggest that B City contributed the most to the total dollar amount of purchase. Consumers from B City spent 10.34% more on Black Friday on average than consumers from A City,  which means consumers from B City spent significantly more than consumers from A City on 99% confidence interval. Consumers from C City spent significantly less on average compared to consumers from A City on 99.9% confidence interval, specifically, consumers from C City spent 62.09% less compared to consumers from A City.  Consistent with predictions made before, although C City contribute most to the spending in terms of total amount, on average consumers from C City were spending less than consumers from other cities. However, R-squared is 0.1198, suggesting city category only explains 11.98% of variance in total purchase. There are likely to be other factors that affecting consumer expenditure during Black Friday
+```{r}
+t.test(log(consumerData[consumerData$City_Category=="B",]$TotalPurchase),log(consumerData[consumerData$City_Category=="C",]$TotalPurchase))
+```
+This t-test examine the null hypothesis that the difference between total purchase from B and C city is zero,
+This null hypothesis is rejected, suggesting that total purchase from B city is significantly different from C city on 99% confidence level
+Thus, total purchase from each city is significantly different from each other
+
+```{r}
+lm_City=lm(log(TotalPurchase)~factor(City_Category)+factor(Gender)+factor(Marital_Status),data=consumerData)
+summary(lm_City)
+```
+Such different between cities is significant even when holding gender and marital status constant. 
+
+####Occupation
+```{r}
+lm_Job = lm(log(TotalPurchase)~factor(Occupation), data=consumerData)
+summary(lm_Job)
+```
+This regression test the null hypothesis that total purchase from each occupation is not different from total purchase from consumers without reported occupation. Consistent with what we conclude earlier, consumers with occupation 20 spend the most on average. On 99% confidence level, consumers with occupation 20 spend 19.37% more than consumers with no reported occupation. On 99.9% confidence level, consumers with occupation 9, 10, and 13 spend respectively 38.20%, 27.65%, and 45.28% less than consumers without reported occupation
+```{r}
+lm_JobGenderMarital= lm(log(TotalPurchase)~factor(Occupation)+factor(Gender)+factor(Marital_Status), data=consumerData)
+summary(lm_JobGenderMarital)
+```
+Such difference between occupations is significant when after holding gender and marital status constant. R-squared is 0.01538, only 1.54% variance of total spending is explained by occupation. Other variables need to be taken into consider to explain consumer spending. 
+
+####Stay In Current City Years and City Category
+```{r}
+t.test(consumerData[consumerData$Stay_In_Current_City_Years=="1", ]$TotalPurchase,consumerData[consumerData$Stay_In_Current_City_Years=="2", ]$TotalPurchase)
+t.test(consumerData[consumerData$Stay_In_Current_City_Years=="1", ]$TotalPurchase,consumerData[consumerData$Stay_In_Current_City_Years=="3", ]$TotalPurchase)
+t.test(consumerData[consumerData$Stay_In_Current_City_Years=="1", ]$TotalPurchase,consumerData[consumerData$Stay_In_Current_City_Years=="4+", ]$TotalPurchase)
+t.test(consumerData[consumerData$Stay_In_Current_City_Years=="2", ]$TotalPurchase,consumerData[consumerData$Stay_In_Current_City_Years=="3", ]$TotalPurchase)
+t.test(consumerData[consumerData$Stay_In_Current_City_Years=="2", ]$TotalPurchase,consumerData[consumerData$Stay_In_Current_City_Years=="4+", ]$TotalPurchase)
+t.test(consumerData[consumerData$Stay_In_Current_City_Years=="3", ]$TotalPurchase,consumerData[consumerData$Stay_In_Current_City_Years=="4+", ]$TotalPurchase)
+```
+We do the t-test for all the levels of Stay_In_Current-City_Years in order to see whether different staying years have effects on the total dollar purchase. As the results show, all the p-values are larger than 0.05, indicating that the differences between each pair of two means are all statistically insignificant. This means that the difference between total dollar purchases in terms of staying years do not matter and that customers who stay in their current city for different years do not show different purchasing behaviors in terms of how much they spend. The results demonstrate our initial conclusion about the relationship between Stay_In_Current_City_Years and the Total Dollar Purchase and we can conclude that the factor Stay_In_Current_Years does not influence the Total Dollar Purchase.
+
+Although the staying year does not directly influence the total dollar purchase, we do the # linear regression below to see whether staying year has any effect on the relationship between City_Category and Total Dollar Purchase.
+```{r}
+lm_CityCategory_StayInCurrentCityYears<-lm(log(TotalPurchase) ~ factor(City_Category)+ factor(Stay_In_Current_City_Years)+factor(City_Category)*factor(Stay_In_Current_City_Years), data = consumerData)
+summary(lm_CityCategory_StayInCurrentCityYears)
+```
+The dependent variable is "Total Purchase", and the independent variables are "City Category" and "Stay In Current City Years". The overall p-value of the model is less than 0.05, indicating that the factor Stay_In_Current_City_Years has influence on how City Category affect Total Dollar Purchase. The results of the regression show that on the 95% confidence interval, customers staying in City B for 3 years generate 0.28% more purchases than customers staying in City A for one year do; customers staying in City C for 4+ years generate 0.26% more purchases than customers staying in City A for one year do.In addition, the R-squared shows that there are 12.27% of the data could be explained by the model. 
+
+####Marital_Status
+```{r}
+t.test(consumerData[consumerData$Marital_Status=="1", ]$TotalPurchase,consumerData[consumerData$Marital_Status=="0", ]$TotalPurchase)
+```
+We do the t-test on Marital_Status in order to see whether the total dollar purchases within different categories of marital status are significantly different.
+The result of the t-test shows that at the 95% confidence interval, we fail to reject the hypothesis that the true difference in means is equal to zero, indicating that whether the customer is married or not does not contribute to any changes in the amount of dollar purchase. Based on the conclusion, we do not need to do linear regression on the two factors.
+
+```{r}
+lm_GenderMaritalStatus<-lm(log(TotalPurchase) ~ factor(Gender)+factor(Marital_Status)+ factor(Gender)*factor(Marital_Status), data = consumerData)
+summary(lm_GenderMaritalStatus)
+```
+The dependent variable is "Total Purcahse", and the independent variables are "Gender" and "Marital Status".The results show that p-values of the base factor unmarried female and the factor married male is statistically significant at the 99.9% confidence interval. The estimate shows that the unmarried male contribute 0.28% more total dollar purchase than the unmarried female do, but whether the customers married or not does not have influence on how gender affect the total dollar purchase. And the R-squared indicates that 1.61% of the data could be explained by the model.
+
+####Gender and Age
+to test if female and male group spend significantly different amount of money on Black Friday purchases
+```{r}
+t.test(consumerData%>%filter(Gender=='F')%>%select(TotalPurchase), consumerData%>%filter(Gender=='M')%>%select(TotalPurchase), paired = FALSE)
+```
+From the above boxplots and barplots, we conclude that the median total purchase of male exceeds that of female for all age groups. And the total amount of money of the whole male group exceeds that of the whole female group. We use independent sample test to figure out that whether the amount of money spent by male consumers is significantly different from that of female consumers, because we measure the same variable "TotalPurcahse" for two groups and "TotalPurchase" is a continuous variable. From the testing result, p-value=2.2*10^-16, which is smaller than 0.05. So we could reject the null hypothesis and conclude that
+the mean of TotalPurchase of male is significantly different from that of female consumers. We prove our earlier conclusion that the amount of money spent by male consumers is significantly different from that of female, indicating that gender will play an important role in our later regression model to understand total Black Friday purchases
+```{r}
+t.test(consumerData%>%filter(Age=='26-35')%>%select(TotalPurchase), consumerData%>%filter(Age=='36-45')%>%select(TotalPurchase), paired = FALSE)
+```
+From the  boxplots and barplots in part one, we conclude that the total amount of purchase from consumers aged 26-35 is the largest, 36-45 the second. We use independent sample test to figure out that whether the average amount of money
+spent by each consumer of 26-35 yrs old is significantly different from that of 36-45 age group, because we measure the same variable "TotalPurcahse" for two groups and it 
+is a continuous variable. From the testing result, p-value=0.003, which is smaller than 0.05. So we could reject the null hypothesis at the 95% confidence level and conclude that
+the average spending of 26-35 yrs old consumers is significantly different from that of 36-45 yrs old. Then the regression model we do later can tells us a lot about the relationship between age and TotalPurchase. In addition, if we compare age groups one by one, we will increase the likelihood of ﬁnding a spurious difference. We need a stronger procedure dealing with multiple groups,and therefore  we turn to linear models.
+```{r}
+lm_Age <- lm(log(TotalPurchase) ~ factor(Age), data = consumerData)
+summary(lm_Age)
+```
+The dependent variable here is "TotalPurchase", which is the total amount of money spent for each consumer. We use log(TotalPurchase) instead of simply using TotalPurchase, because the value change of money in dollar is not as meaningful
+as percentage change of money. And the independent variable "Age" group is categorized as dummy variable in linear regression. From the result, six of the all age groups are statistically significant at 95% confidence level, because p-values are smaller than 0.05.
+This indicates that we can reject the null hypothesis that the coefficient is 0 and conclude that whether the consumer is within the age range of 
+0-17, 18-25, 26-35, 36-45, 46-50 and 51-55 makes significant different in terms of the total amount of purchase made by consumers. Looking closer into the result, we know that whether a consumer is 0-17 years old associates with 12.91% change in TotalPurchase. 
+Whether a consumer is 18-25 associates with 0.26+12.91=13.17% change in TotalPurchase. Whether a consumer is 26-35 associates with 0.39+12.91=% change in TotalPurchase, 
+and it has the largest difference in TotalPurchase with the condition when the consumer is 0-17 years old. It proves our earlier conclusion that the age group of 26-35 generates the largest per person TotalPurchase. Whether a consumer is in 36-45 age range associates with 0.27+12.91=13.81% change in TotalPurchase.  Whether a consumer is 46-50 associates with 0.17+12.91=13.08% change in TotalPurchase. Whether a consumer is 51-55 associates with 0.16+12.91=13.07% change in TotalPurchase. However, it is not statistically significant for age group of 55+, and thus changes in the predictor are not associated with changes in the TotalPurchase.The R-squared here is 0.02, indicating that about 2% of the variation of TotalPurchase can be explained by age. There are likely to be other factors explaining consumer behavior.
+```{r}
+lm_Gender <- lm(log(TotalPurchase) ~ factor(Gender), data = consumerData)
+summary(lm_Gender)
+```
+The dependent variable here is "TotalPurchase", which is the total amount of money spent by each consumer. And the independent variable Age group is categorized as dummy variable in linear regression. From the result, it is statically significant for both female and male, indicating that gender is a significant variable of affecting how much consumers spend during Black Friday.
+And whether a consumer is female associates with 12.97% change in TotalPurchase. Whether a consumer is male associates with 12.97%+0.27%=13.24% change in TotalPurchase. The R-squared here is 0.15, indicating that about 1.5% of the variation of TotalPurchase can be explained in the change of gender.
+```{r}
+lm_AgeAndGender <- lm(log(TotalPurchase) ~ factor(Age)+factor(Gender), data = consumerData)
+summary(lm_AgeAndGender)
+```
+The dependent variable is "TotalPurchase", which is the total amount of money a certain consumer spent. And the independent variables are "Age" and "Gender", because age and gender are both basic identity of a person, and they are dependent on each other. After adding the dummy variable(Gender M) into the regression, we find several change in the estimation. Holding gender constant, the factor age 51-55 is no longer statistically significant, thus we fail to reject the null hypothesis regarding this variable. Another change is that holding gender constant, age 55+ is statically significant in this model. The omitted variable bias in previous regression may explain those changes. Thus, given gender, whether the consumer is between 51-55 does not necessarily affect the revenue, and the change in "TotalPurchase" of age group 55+ is not associated with age but gender. In addition, R-square increase from 2% and 1.15% to 3.5%, which indicates that this model is slightly better to measure the variation of TotalPurchase comparing to baseline regression models.
+
+####Conclusion on part two
+From the tests and regressions we conducted, we found that consummers's purchase power differ significantly across cities with B the most profitable and C the least. As for occupation, 20 spends significantly more and 9,10,13 spend less. Though years stay in the city does not contribute directly to purchase, we found that for those who stay in city B three years or more and city C for four or more years tend to spend more. Marital status also doesn't effect purchase directly, but we have found that unmarried male spend more than unmarried female. As for age, we have found that age group of 26-35 has the most purchasing power followed by 36-45 and 18-25. Therefore, we think that the store's ideal target customers should be male with age between 26-35, occupation 20 and living in city B for three or more years
+
+
+####Predictive Analysis
+We will now build predicting models to forecast the wallet-spend for each individual customers. 
+
+```{r}
+#Split the dataset randomly in a 90-10 split for training and validation sets
+set.seed(3)
+validation.index = sample(seq(1,nrow(consumerData)), 
+                          floor(0.10*nrow(consumerData)))
+validationData = consumerData[validation.index, ]
+trainingData = consumerData[-validation.index, ]
+#Run each regression model on the training set and get the prediction error from the validation set
+
+prediction.error = function(lm_model, validationData){
+  predicted.units = exp(predict(lm_model, validationData))
+  error = sqrt(mean((predicted.units-validationData$TotalPurchase)^2))
+}
+
+#model1 only use gender
+lm1 <- lm(log(TotalPurchase) ~ Gender, data = consumerData)
+#model2 add age
+lm2 <- lm(log(TotalPurchase) ~ Gender + Age, data = consumerData)
+#model3 add occupation
+lm3 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation, data = consumerData)
+#model4 add stay in city years
+lm4 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years, data = consumerData)
+#model5 add city categories
+lm5 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category, data = consumerData)
+#model6 add marital status
+lm6 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + Marital_Status + City_Category, data = consumerData)
+#model7 add interactions of marital and gender
+lm7 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Marital_Status*Gender, data = consumerData)
+#model8 add interaction of gender and occupations 
+lm8 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Marital_Status*Gender + Occupation*Gender, data = consumerData)
+#model9 add interaction of city categories and occupations  
+lm9 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Marital_Status*Gender + Occupation*Gender + City_Category*Occupation, data = consumerData)
+#model10 add interaction of city categories and gender
+lm10 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Marital_Status*Gender + Occupation*Gender + City_Category*Occupation + City_Category*Gender, data = consumerData)
+#model11 add interaction of city categories and stay in current city years
+lm11 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Marital_Status*Gender + Occupation*Gender + City_Category*Occupation + City_Category*Gender + City_Category*Stay_In_Current_City_Years, data = consumerData)
+#model12 remove interaction terms of gender&marital status
+lm12 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Occupation*Gender + City_Category*Gender + City_Category*Stay_In_Current_City_Years + City_Category*Occupation, data = consumerData)
+#model13 add interaction of marital status and occupation
+lm13 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Occupation*Gender + City_Category*Gender + City_Category*Stay_In_Current_City_Years + City_Category*Occupation + Marital_Status*Occupation, data = consumerData)
+#model14 add interation of age and gender
+lm14 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Occupation*Gender + City_Category*Gender + City_Category*Stay_In_Current_City_Years + City_Category*Occupation + Marital_Status*Occupation + Age*Gender, data = consumerData)
+#model15 add interation of age and occupations
+lm15 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Occupation*Gender + City_Category*Gender + City_Category*Stay_In_Current_City_Years + City_Category*Occupation + Marital_Status*Occupation + Age*Gender + Age*Occupation, data = consumerData)
+#model16 add purchase number 
+lm16 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Occupation*Gender + City_Category*Gender + City_Category*Stay_In_Current_City_Years + City_Category*Occupation + Marital_Status*Occupation + Age*Gender + Age*Occupation + PurchaseNumber, data = consumerData)
+
+
+#calculate prediction errors for every models
+error_model1 = prediction.error(lm1, validationData)
+error_model2 = prediction.error(lm2, validationData)
+error_model3 = prediction.error(lm3, validationData)
+error_model4 = prediction.error(lm4, validationData)
+error_model5 = prediction.error(lm5, validationData)
+error_model6 = prediction.error(lm6, validationData)
+error_model7 = prediction.error(lm7, validationData)
+error_model8 = prediction.error(lm8, validationData)
+error_model9 = prediction.error(lm9, validationData)
+error_model10 = prediction.error(lm10, validationData)
+error_model11 = prediction.error(lm11, validationData)
+error_model12 = prediction.error(lm12, validationData)
+error_model13 = prediction.error(lm13, validationData)
+error_model14 = prediction.error(lm14, validationData)
+error_model15 = prediction.error(lm15, validationData)
+error_model16 = prediction.error(lm16, validationData)
+
+# Show a table with 2 columns
+data.frame(Names = c("Model1","Model2", "Model3",
+                     "Model4", "Model5", "Model6","Model7", "Model8",
+                     "Model9", "Model10", "Model11", "Model12", "Model13", "Model14", "Model15", "Model16"), 
+           Error = c(error_model1,error_model2, error_model3, 
+                     error_model4, error_model5, error_model6,error_model7, error_model8, 
+                     error_model9, error_model10, error_model11, error_model12,    error_model13, error_model14, error_model15, error_model16))
+```
+From the result, we can tell that the 15th model gives the least root mean squared error.
+```{r}
+summary(lm15)
+```
+
+```{r}
+test <- expand.grid(Gender=levels(consumerData$Gender),Age = levels(consumerData$Age),Occupation = levels(consumerData$Occupation),City_Category = levels(consumerData$City_Category),Stay_In_Current_City_Years = levels(consumerData$Stay_In_Current_City_Years),Marital_Status = levels(consumerData$Marital_Status))
+
+Predict <- predict(lm15,test,se.fit = T)
+test <- cbind(test,"Predicted_value" = Predict$fit,"Predicted_se" = Predict$se.fit)
+
+test$CI_lower <- test$Predicted_value - 1.96*test$Predicted_se
+test$CI_higher <- test$Predicted_value + 1.96*test$Predicted_se
+test$Predicted_value <- exp(test$Predicted_value)
+test$CI_lower <- exp(test$CI_lower)
+test$CI_higher <- exp(test$CI_higher)
+```
 
