@@ -212,7 +212,31 @@ ggplot(consumerData, aes(x= Age,y=TotalPurchase,color=Gender)) + geom_boxplot() 
 Conclusion
  From the data pattern explained above, we conclude that among all the customers in the dataset, customers who live in the City C have the largest purchasing power over customers in City A and City B. For all the three cities, customers who have lived in their current city for one year contribute the most to the dollar amount of purchases; therefore, this group of consumers are likely to spend the most during the Black Friday. By visualizing the data in terms of gender and age, first, we can conclude that male consumers make more purchases than females in all age groups. Second, regardless of gender, customers who are between 26 and 35 years old spend the most. In addition, the visualization of the relationship between dollar amount of purchase and marital status and gender indicates that single males make more purchases than any other groups of customers. And within both married and single groups, males make more purchases than females. The results have a few implications for firm's manager. First, this report could help the manager know consumers' needs. With the analysis of which group of people make the most purchase, the manager could change the brands and products they order from the supplier in order to bring larger profits.  They might reduce products that are not preferable by people who have the strongest purchasing power and increase products that could appropriately fulfill those people's needs. This could also be an indication for next Black Friday's stock for those people would certainly come back to the store and the store need more stocks of products those people like. Second, This result could also be an implication of the marketing campaign for next year. The manager could get a better understanding of the identity of the majority of consumers from the report. Therefore, the manager could change marketing campaign that attract more people of interest.
  
-##Part two - Hypothesis Testing and Regression
+## Part two - Hypothesis Testing and Regression
+ For the following analysis, out dependent variable will be the overall expenditure per consumer
+
+#### We use a simple regression to examine whether the total dollar amount of purchase per consumer made during Black Friday changes across different cities
+```{r}
+lm_Purchase=lm(log(TotalPurchase)~factor(City_Category),data=consumerData)
+summary(lm_Purchase)
+```
+This regression test the null hypothesis that total purchase from B and C city respectively are not different from total purchase from A City and such null hypothesis is rejected
+The t-test results suggest that B City contributed the most to the total dollar amount of purchase. Consumers from B City spent 10.34% more on Black Friday on average than consumers from A City,  which means consumers from B City spent significantly more than consumers from A City on 99% confidence interval. Consumers from C City spent significantly less on average compared to consumers from A City on 99.9% confidence interval, specifically, consumers from C City spent 62.09% less compared to consumers from A City.  Consistent with predictions made before, although C City contribute most to the spending in terms of total amount, on average consumers from C City were spending less than consumers from other cities. However, R-squared is 0.1195, suggesting city category explains 11.95% of variance in total purchase. City_Category should be included in regression to explain total purchase per consumer, but there are likely to be other factors that affecting consumer expenditure during Black Friday
+
+#### The t-test examine the null hypothesis that the difference between total purchase from B and C city is zero
+```{r}
+t.test(log(consumerData[consumerData$City_Category=="B",]$TotalPurchase),log(consumerData[consumerData$City_Category=="C",]$TotalPurchase))
+```
+this t-test examine the null hypothesis that the difference between total purchase from B and C city is zero
+this null hypothesis is rejected, suggesting that total purchase from B city is significantly different from C city on 99% confidence level
+Thus, total purchase from each city is significantly different from each other
+
+#### We add Occupation to the regression to examine the effects of occupation on consumer level total purchase
+```{r}
+lm_Purchase=lm(log(TotalPurchase)~factor(City_Category)+factor(Occupation),data=consumerData)
+summary(lm_Purchase)
+```
+Adding “Occupation” to the regression does not change the differences in mean total purchase per consumer between City A and B and between City A and C substantially. Thus, the effects of city category on total purchase per consumer are not affected by occupation. Adjusted R-squared increased slightly from 11.95% to 12.56%, meaning “City_Category” and “Occupation” together explain more variance in total purchase per consumer than “City_Category” alone. The mean total purchase per consumer from some occupations is significantly different than mean total purchase from consumers who did not report their occupation. Consistent with what we concluded earlier, consumers with occupation 19 spend the most on average and occupation 13 the least. Consumers with occupation 16, 19, and 20 spend respectively 12.79% (90% confidence level), 21.20% (90% confidence level), and 10.98% (90% confidence level) more than consumers without reported occupation. In contrast, consumers from occupation 6, 9, 10, and 13 spend respectively 16.52% (95% confidence level), 30.88% (99% confidence level), 18.84% (95% confidence level), and 33.35% (99.9% confidence level) less than consumers without reported occupation. 
 
 #### Adding Gender to the regression to examine the effects of gender on consumer level total purchase
 ```{r}
@@ -228,14 +252,14 @@ summary(lm_Purchase)
 ```
 we observe that adding ‘Age’ to our regression model does not affect coefficients for ‘Gender’ and ‘city categories’. For consumers with occupation 16 and 17, TotalPurchase per person become statistically significant. On a 90% confidence level, consumers with occupation 16 and occupation 17 spend 0.12% more on average and 0.09% less on average than those who don’t have occupation information, given age. Thus, occupation 16 and  17 have some relationship with age. For age groups, Consumers in 26-35 and 36-45 spend respectively 0.27% and 0.23% more than consumers who are under 18 years old at a 95% confidence level. In addtion, adj. R-squared increase slightly to 14.7%, indicating a better fit of the data.
 
-### We add Marital Status to the regression to examine the effects of Marital Status on consumer level total purchase
+#### Adding Marital Status to the regression to examine the effects of Marital Status on consumer level total purchase
 ```{r}
 lm_Marital_Status=lm(log(TotalPurchase)~factor(City_Category)+factor(Occupation)+factor(Gender)+factor(Age)+factor(Marital_Status),data=consumerData)
 summary(lm_Marital_Status)
 ```
 Adding “Marital Status” in the regression does not significantly change the estimates for the mean total purchase made by customers from different cities, nor change the significant level. And adding “Marital Status” in the regression does not really change the estimates for the mean total purchase made by customers among different occupations, and it does not affect how the variable age influence the estimates for customer level total purchase. This indicates that the factor Marital Status does not matter in our regression. In addition, the adjusted-R^2 has decreased a little bit from 0.147 to 0.1469, indicating that the added new variable does not improve the level of fitness of the model, and instead, it even make the model less fit the data for a little bit. 
 
-### We add Stay_In_Current_City_Years to the regression to examine the effects of Marital Status on consumer level total purchase
+#### Adding Stay_In_Current_City_Years to the regression to examine the effects of Marital Status on consumer level total purchase
 ```{r}
 lm_Stay_In_Current_City_Years=lm(log(TotalPurchase)~factor(City_Category)+factor(Occupation)+factor(Gender)+factor(Age)+factor(Marital_Status)+factor(Stay_In_Current_City_Years), ,data=consumerData)
 summary(lm_Stay_In_Current_City_Years)
