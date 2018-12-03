@@ -228,6 +228,19 @@ summary(lm_Purchase)
 ```
 we observe that adding ‘Age’ to our regression model does not affect coefficients for ‘Gender’ and ‘city categories’. For consumers with occupation 16 and 17, TotalPurchase per person become statistically significant. On a 90% confidence level, consumers with occupation 16 and occupation 17 spend 0.12% more on average and 0.09% less on average than those who don’t have occupation information, given age. Thus, occupation 16 and  17 have some relationship with age. For age groups, Consumers in 26-35 and 36-45 spend respectively 0.27% and 0.23% more than consumers who are under 18 years old at a 95% confidence level. In addtion, adj. R-squared increase slightly to 14.7%, indicating a better fit of the data.
 
+### We add Marital Status to the regression to examine the effects of Marital Status on consumer level total purchase
+```{r}
+lm_Marital_Status=lm(log(TotalPurchase)~factor(City_Category)+factor(Occupation)+factor(Gender)+factor(Age)+factor(Marital_Status),data=consumerData)
+summary(lm_Marital_Status)
+```
+Adding “Marital Status” in the regression does not significantly change the estimates for the mean total purchase made by customers from different cities, nor change the significant level. And adding “Marital Status” in the regression does not really change the estimates for the mean total purchase made by customers among different occupations, and it does not affect how the variable age influence the estimates for customer level total purchase. This indicates that the factor Marital Status does not matter in our regression. In addition, the adjusted-R^2 has decreased a little bit from 0.147 to 0.1469, indicating that the added new variable does not improve the level of fitness of the model, and instead, it even make the model less fit the data for a little bit. 
+
+### We add Stay_In_Current_City_Years to the regression to examine the effects of Marital Status on consumer level total purchase
+```{r}
+lm_Stay_In_Current_City_Years=lm(log(TotalPurchase)~factor(City_Category)+factor(Occupation)+factor(Gender)+factor(Age)+factor(Marital_Status)+factor(Stay_In_Current_City_Years), ,data=consumerData)
+summary(lm_Stay_In_Current_City_Years)
+```
+Adding “Stay In Current City Years”  in the regression does not significantly change the estimates for the mean total purchase made by customers from different cities, nor change the significant level. Also, adding “Stay In Current City Years”  in the regression does not really change how the variable Occupation influence the estimates for customer level total purchase cross different city categories, and it does not affect how the variable age influence the estimates for customer level total purchase cross city categories. This indicates that the factor Stay In Current City Years does not matter in our regression. In addition, the adjusted-R^2 has decreased a little bit from 0.1469 to 0.1465, indicating that the added new variable does not improve the level of fitness of the model, and instead, it even make the model less fit the data for a little bit. 
 
 ####Conclusion on part two
 From the tests and regressions we conducted, we found that consummers's purchase power differ significantly across cities with B the most profitable and C the least. As for occupation, 20 spends significantly more and 9,10,13 spend less. Though years stay in the city does not contribute directly to purchase, we found that for those who stay in city B three years or more and city C for four or more years tend to spend more. Marital status also doesn't effect purchase directly, but we have found that unmarried male spend more than unmarried female. As for age, we have found that age group of 26-35 has the most purchasing power followed by 36-45 and 18-25. Therefore, we think that the store's ideal target customers should be male with age between 26-35, occupation 20 and living in city B for three or more years
@@ -249,6 +262,9 @@ prediction.error = function(lm_model, validationData){
   predicted.units = exp(predict(lm_model, validationData))
   error = sqrt(mean((predicted.units-validationData$TotalPurchase)^2))
 }
+
+
+
 
 #model1 only use gender
 lm1 <- lm(log(TotalPurchase) ~ Gender, data = consumerData)
