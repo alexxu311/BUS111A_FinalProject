@@ -201,16 +201,12 @@ ggplot(consumerData, aes(x= Age,y=TotalPurchase,color=Gender)) + geom_boxplot() 
   theme(axis.text = element_text(size = 5))+ ggtitle("Distribution of Total Purchase between Genders across AgeGroups") + 
  xlab("Age Groups, distinguished by gender") + ylab("Total Dollar Amount Purchase ($)")+ 
   theme(plot.title = element_text(hjust = 0.5,size = 12))
-ggplot(consumerData, aes(x= Age,y=TotalPurchase,color=Age)) + geom_col() + 
-  theme(axis.text = element_text(size = 5))+ ggtitle("Distribution of Total Dollar Purchase across age groups") + 
-  facet_wrap(~Gender) + xlab("Gender, distinguished by age groups") + ylab("Total Dollar Amount Purchase ($)")+ 
-  theme(plot.title = element_text(hjust = 0.5,size = 12))
+
 ```
-
- we consider age and gender together and draw plots of different age groups grouped by genderbecause age and gender are closely related factors in determining consumption b ehaviors. For example, a man of 0-17 yrs old have different purchasing power from that of a 55+ yrs old woman. "Gender" and "Age" are discrete variables , and "Purchase" is a continuous variable.If we want to show the distribution of total amount of purchase between gender and among age, we need to use boxplot.Therefore, we can know which age group has higher purchasing power and more preferable of this store, and which sex makes more contribution. We want to answer the question that 'what is the distribution of purchase between different age group?',and 'Are male and female consumers spend same amount of money in this store for each age group?'Our conclusion is that since male consumers have more outliers than that of female consumers, meaning the distribution of purchase of male consumers are more disperse.
-
- "Gender" and "Age" are discrete variables , and "Purchase" is a continous variable.So We draw barplot of female and male consumers among different age group since we could compare the amount of purchase among age groups as well as between gender altogether. In addition, we could know the age distribution between different men and women. We want to answer the question that 'Which gender group and age group have the strongest purchasing power?'and 'Are consumption behaviors different in each age group for male and female consumers?' Our conclusion is that regardless of gender, 26-35 yrs old people have the strongest purchasing power.Since the purchase of male consumers of all age groups exceeds all age groups of female consumers, we conclude that overall male consumers have stronger purchasing power than female. In addition, the distribution of dollar amount of purchase among different age groups of two genders are approximately the same, which indicates that gender does not influence the difference in purchasing power between male and female consumers.
-
+ Before we look into distribution of total amount of purchase, we need to figure out the units of people involves to have a better interpretation of how those consumers behave. We use barplot to count number of people in each gender. We find that the majority consumer of this store is male. Then we count number of people in each age groups. We find that the most numbers of people is the 26-35 yrs old age group, the second 36-45 yrs old and the third 18-25 yrs old. Thus, people from 18-45 yrs old are the majority consumers in this store. People from 0-17 yrs old are the least number of consumers.
+ 
+ we consider age and gender together and draw plots of different age groups grouped by gender because age and gender are closely related factors in determining consumption behaviors. For example, a man of 0-17 yrs old have different purchasing behavior from that of a 55+ yrs old woman. “Gender” and “Age” are discrete variables , and “TotalPurchase” is a continuous variable, and thus we use barplot to show the distribution of TotalPurchase. Therefore, we can know which age group has spent more and are more preferable of this store,and which sex makes more contribution.Our conclusion is that since male consumers have more outliers than that of female consumers, the distribution of purchase of male consumers are more disperse. And the average TotalPurchase of each man are bigger than that of each woman for all age groups except for 55+ group. The average of TotalPurchase for 55+ years old female and male are approximately the same, but male consumers have more outliers.Overall, male consumers have spent more than female on average # Regardless of gender, 26-35 yrs old people spent most amount of money in this store, 36-45 yrs old people the second.
+ 
 ####Conclusion on first part
  To improve the graphs, we first decide to use facet to include another independent variable into the graph and colored by variable on x-axis so that we can look at the relationship between two related independent variable and one dependent variable which is Purchase for all the graphs. Then, we have used ggtitle,xlab,ylab to add appropriate titles and labels. Finally, we moderated the size of titles and labels and center the title as well. 
 Conclusion
@@ -218,104 +214,20 @@ Conclusion
  
 ##Part two - Hypothesis Testing and Regression
 
-####City Categories
+#### Adding Gender to the regression to examine the effects of gender on consumer level total purchase
 ```{r}
-lm_City=lm(log(TotalPurchase)~factor(City_Category),data=consumerData)
-summary(lm_City)
+lm_Gender=lm(log(TotalPurchase)~factor(City_Category)+factor(Occupation)+factor(Gender),data=consumerData)
+summary(lm_Purchase)
 ```
-This regression test the null hypothesis that total purchase from B and C city respectively are not different from total purchase from A City and such null hypothesis is rejected
-The t-test results suggest that B City contributed the most to the total dollar amount of purchase. Consumers from B City spent 10.34% more on Black Friday on average than consumers from A City,  which means consumers from B City spent significantly more than consumers from A City on 99% confidence interval. Consumers from C City spent significantly less on average compared to consumers from A City on 99.9% confidence interval, specifically, consumers from C City spent 62.09% less compared to consumers from A City.  Consistent with predictions made before, although C City contribute most to the spending in terms of total amount, on average consumers from C City were spending less than consumers from other cities. However, R-squared is 0.1198, suggesting city category only explains 11.98% of variance in total purchase. There are likely to be other factors that affecting consumer expenditure during Black Friday
-```{r}
-t.test(log(consumerData[consumerData$City_Category=="B",]$TotalPurchase),log(consumerData[consumerData$City_Category=="C",]$TotalPurchase))
-```
-This t-test examine the null hypothesis that the difference between total purchase from B and C city is zero,
-This null hypothesis is rejected, suggesting that total purchase from B city is significantly different from C city on 99% confidence level
-Thus, total purchase from each city is significantly different from each other
+Adding ‘Gender’ to the regression does not change the coefficients of City categories. This means the effects of city category on TotalPurchase per consumer are not affected by gender. However, we observe several changes in Occupation. Consumers of Occupation 9 does not spend significant different amount of money per person on average from those who do not have occupation info. This means gender can better explain the total dollar spent per person on average of people with Occupation 9, instead of what kind of occupation the person has. In addition, for consumers with occupation 3 and 7, TotalPurchase per person become statistically significant. On a 90% confidence level, consumers with occupation 3 and occupation 7 spend 0.13% less on average and 0.09% less on average than those who don’t have occupation information. Thus, occupation 3 and  7 have some relationship with gender. Then total dollar spent per person of male is significantly different from female on average, spending 0.29% more average keeping other predictors at a 99.9% confidence level. Lastly, adj. R-squared increase from 12.56% to 14.12%, indicating that more variation in TotalPurchase could be explained by predictors. We have a better fit of the data now.
 
+#### Adding Age to the regression to examine the effects of age groups on consumer level total purchase
 ```{r}
-lm_City=lm(log(TotalPurchase)~factor(City_Category)+factor(Gender)+factor(Marital_Status),data=consumerData)
-summary(lm_City)
+lm_Gender=lm(log(TotalPurchase)~factor(City_Category)+factor(Occupation)+factor(Gender)+factor(Age),data=consumerData)
+summary(lm_Purchase)
 ```
-Such different between cities is significant even when holding gender and marital status constant. 
+we observe that adding ‘Age’ to our regression model does not affect coefficients for ‘Gender’ and ‘city categories’. For consumers with occupation 16 and 17, TotalPurchase per person become statistically significant. On a 90% confidence level, consumers with occupation 16 and occupation 17 spend 0.12% more on average and 0.09% less on average than those who don’t have occupation information, given age. Thus, occupation 16 and  17 have some relationship with age. For age groups, Consumers in 26-35 and 36-45 spend respectively 0.27% and 0.23% more than consumers who are under 18 years old at a 95% confidence level. In addtion, adj. R-squared increase slightly to 14.7%, indicating a better fit of the data.
 
-####Occupation
-```{r}
-lm_Job = lm(log(TotalPurchase)~factor(Occupation), data=consumerData)
-summary(lm_Job)
-```
-This regression test the null hypothesis that total purchase from each occupation is not different from total purchase from consumers without reported occupation. Consistent with what we conclude earlier, consumers with occupation 20 spend the most on average. On 99% confidence level, consumers with occupation 20 spend 19.37% more than consumers with no reported occupation. On 99.9% confidence level, consumers with occupation 9, 10, and 13 spend respectively 38.20%, 27.65%, and 45.28% less than consumers without reported occupation
-```{r}
-lm_JobGenderMarital= lm(log(TotalPurchase)~factor(Occupation)+factor(Gender)+factor(Marital_Status), data=consumerData)
-summary(lm_JobGenderMarital)
-```
-Such difference between occupations is significant when after holding gender and marital status constant. R-squared is 0.01538, only 1.54% variance of total spending is explained by occupation. Other variables need to be taken into consider to explain consumer spending. 
-
-####Stay In Current City Years and City Category
-```{r}
-t.test(consumerData[consumerData$Stay_In_Current_City_Years=="1", ]$TotalPurchase,consumerData[consumerData$Stay_In_Current_City_Years=="2", ]$TotalPurchase)
-t.test(consumerData[consumerData$Stay_In_Current_City_Years=="1", ]$TotalPurchase,consumerData[consumerData$Stay_In_Current_City_Years=="3", ]$TotalPurchase)
-t.test(consumerData[consumerData$Stay_In_Current_City_Years=="1", ]$TotalPurchase,consumerData[consumerData$Stay_In_Current_City_Years=="4+", ]$TotalPurchase)
-t.test(consumerData[consumerData$Stay_In_Current_City_Years=="2", ]$TotalPurchase,consumerData[consumerData$Stay_In_Current_City_Years=="3", ]$TotalPurchase)
-t.test(consumerData[consumerData$Stay_In_Current_City_Years=="2", ]$TotalPurchase,consumerData[consumerData$Stay_In_Current_City_Years=="4+", ]$TotalPurchase)
-t.test(consumerData[consumerData$Stay_In_Current_City_Years=="3", ]$TotalPurchase,consumerData[consumerData$Stay_In_Current_City_Years=="4+", ]$TotalPurchase)
-```
-We do the t-test for all the levels of Stay_In_Current-City_Years in order to see whether different staying years have effects on the total dollar purchase. As the results show, all the p-values are larger than 0.05, indicating that the differences between each pair of two means are all statistically insignificant. This means that the difference between total dollar purchases in terms of staying years do not matter and that customers who stay in their current city for different years do not show different purchasing behaviors in terms of how much they spend. The results demonstrate our initial conclusion about the relationship between Stay_In_Current_City_Years and the Total Dollar Purchase and we can conclude that the factor Stay_In_Current_Years does not influence the Total Dollar Purchase.
-
-Although the staying year does not directly influence the total dollar purchase, we do the # linear regression below to see whether staying year has any effect on the relationship between City_Category and Total Dollar Purchase.
-```{r}
-lm_CityCategory_StayInCurrentCityYears<-lm(log(TotalPurchase) ~ factor(City_Category)+ factor(Stay_In_Current_City_Years)+factor(City_Category)*factor(Stay_In_Current_City_Years), data = consumerData)
-summary(lm_CityCategory_StayInCurrentCityYears)
-```
-The dependent variable is "Total Purchase", and the independent variables are "City Category" and "Stay In Current City Years". The overall p-value of the model is less than 0.05, indicating that the factor Stay_In_Current_City_Years has influence on how City Category affect Total Dollar Purchase. The results of the regression show that on the 95% confidence interval, customers staying in City B for 3 years generate 0.28% more purchases than customers staying in City A for one year do; customers staying in City C for 4+ years generate 0.26% more purchases than customers staying in City A for one year do.In addition, the R-squared shows that there are 12.27% of the data could be explained by the model. 
-
-####Marital_Status
-```{r}
-t.test(consumerData[consumerData$Marital_Status=="1", ]$TotalPurchase,consumerData[consumerData$Marital_Status=="0", ]$TotalPurchase)
-```
-We do the t-test on Marital_Status in order to see whether the total dollar purchases within different categories of marital status are significantly different.
-The result of the t-test shows that at the 95% confidence interval, we fail to reject the hypothesis that the true difference in means is equal to zero, indicating that whether the customer is married or not does not contribute to any changes in the amount of dollar purchase. Based on the conclusion, we do not need to do linear regression on the two factors.
-
-```{r}
-lm_GenderMaritalStatus<-lm(log(TotalPurchase) ~ factor(Gender)+factor(Marital_Status)+ factor(Gender)*factor(Marital_Status), data = consumerData)
-summary(lm_GenderMaritalStatus)
-```
-The dependent variable is "Total Purcahse", and the independent variables are "Gender" and "Marital Status".The results show that p-values of the base factor unmarried female and the factor married male is statistically significant at the 99.9% confidence interval. The estimate shows that the unmarried male contribute 0.28% more total dollar purchase than the unmarried female do, but whether the customers married or not does not have influence on how gender affect the total dollar purchase. And the R-squared indicates that 1.61% of the data could be explained by the model.
-
-####Gender and Age
-to test if female and male group spend significantly different amount of money on Black Friday purchases
-```{r}
-t.test(consumerData%>%filter(Gender=='F')%>%select(TotalPurchase), consumerData%>%filter(Gender=='M')%>%select(TotalPurchase), paired = FALSE)
-```
-From the above boxplots and barplots, we conclude that the median total purchase of male exceeds that of female for all age groups. And the total amount of money of the whole male group exceeds that of the whole female group. We use independent sample test to figure out that whether the amount of money spent by male consumers is significantly different from that of female consumers, because we measure the same variable "TotalPurcahse" for two groups and "TotalPurchase" is a continuous variable. From the testing result, p-value=2.2*10^-16, which is smaller than 0.05. So we could reject the null hypothesis and conclude that
-the mean of TotalPurchase of male is significantly different from that of female consumers. We prove our earlier conclusion that the amount of money spent by male consumers is significantly different from that of female, indicating that gender will play an important role in our later regression model to understand total Black Friday purchases
-```{r}
-t.test(consumerData%>%filter(Age=='26-35')%>%select(TotalPurchase), consumerData%>%filter(Age=='36-45')%>%select(TotalPurchase), paired = FALSE)
-```
-From the  boxplots and barplots in part one, we conclude that the total amount of purchase from consumers aged 26-35 is the largest, 36-45 the second. We use independent sample test to figure out that whether the average amount of money
-spent by each consumer of 26-35 yrs old is significantly different from that of 36-45 age group, because we measure the same variable "TotalPurcahse" for two groups and it 
-is a continuous variable. From the testing result, p-value=0.003, which is smaller than 0.05. So we could reject the null hypothesis at the 95% confidence level and conclude that
-the average spending of 26-35 yrs old consumers is significantly different from that of 36-45 yrs old. Then the regression model we do later can tells us a lot about the relationship between age and TotalPurchase. In addition, if we compare age groups one by one, we will increase the likelihood of ﬁnding a spurious difference. We need a stronger procedure dealing with multiple groups,and therefore  we turn to linear models.
-```{r}
-lm_Age <- lm(log(TotalPurchase) ~ factor(Age), data = consumerData)
-summary(lm_Age)
-```
-The dependent variable here is "TotalPurchase", which is the total amount of money spent for each consumer. We use log(TotalPurchase) instead of simply using TotalPurchase, because the value change of money in dollar is not as meaningful
-as percentage change of money. And the independent variable "Age" group is categorized as dummy variable in linear regression. From the result, six of the all age groups are statistically significant at 95% confidence level, because p-values are smaller than 0.05.
-This indicates that we can reject the null hypothesis that the coefficient is 0 and conclude that whether the consumer is within the age range of 
-0-17, 18-25, 26-35, 36-45, 46-50 and 51-55 makes significant different in terms of the total amount of purchase made by consumers. Looking closer into the result, we know that whether a consumer is 0-17 years old associates with 12.91% change in TotalPurchase. 
-Whether a consumer is 18-25 associates with 0.26+12.91=13.17% change in TotalPurchase. Whether a consumer is 26-35 associates with 0.39+12.91=% change in TotalPurchase, 
-and it has the largest difference in TotalPurchase with the condition when the consumer is 0-17 years old. It proves our earlier conclusion that the age group of 26-35 generates the largest per person TotalPurchase. Whether a consumer is in 36-45 age range associates with 0.27+12.91=13.81% change in TotalPurchase.  Whether a consumer is 46-50 associates with 0.17+12.91=13.08% change in TotalPurchase. Whether a consumer is 51-55 associates with 0.16+12.91=13.07% change in TotalPurchase. However, it is not statistically significant for age group of 55+, and thus changes in the predictor are not associated with changes in the TotalPurchase.The R-squared here is 0.02, indicating that about 2% of the variation of TotalPurchase can be explained by age. There are likely to be other factors explaining consumer behavior.
-```{r}
-lm_Gender <- lm(log(TotalPurchase) ~ factor(Gender), data = consumerData)
-summary(lm_Gender)
-```
-The dependent variable here is "TotalPurchase", which is the total amount of money spent by each consumer. And the independent variable Age group is categorized as dummy variable in linear regression. From the result, it is statically significant for both female and male, indicating that gender is a significant variable of affecting how much consumers spend during Black Friday.
-And whether a consumer is female associates with 12.97% change in TotalPurchase. Whether a consumer is male associates with 12.97%+0.27%=13.24% change in TotalPurchase. The R-squared here is 0.15, indicating that about 1.5% of the variation of TotalPurchase can be explained in the change of gender.
-```{r}
-lm_AgeAndGender <- lm(log(TotalPurchase) ~ factor(Age)+factor(Gender), data = consumerData)
-summary(lm_AgeAndGender)
-```
-The dependent variable is "TotalPurchase", which is the total amount of money a certain consumer spent. And the independent variables are "Age" and "Gender", because age and gender are both basic identity of a person, and they are dependent on each other. After adding the dummy variable(Gender M) into the regression, we find several change in the estimation. Holding gender constant, the factor age 51-55 is no longer statistically significant, thus we fail to reject the null hypothesis regarding this variable. Another change is that holding gender constant, age 55+ is statically significant in this model. The omitted variable bias in previous regression may explain those changes. Thus, given gender, whether the consumer is between 51-55 does not necessarily affect the revenue, and the change in "TotalPurchase" of age group 55+ is not associated with age but gender. In addition, R-square increase from 2% and 1.15% to 3.5%, which indicates that this model is slightly better to measure the variation of TotalPurchase comparing to baseline regression models.
 
 ####Conclusion on part two
 From the tests and regressions we conducted, we found that consummers's purchase power differ significantly across cities with B the most profitable and C the least. As for occupation, 20 spends significantly more and 9,10,13 spend less. Though years stay in the city does not contribute directly to purchase, we found that for those who stay in city B three years or more and city C for four or more years tend to spend more. Marital status also doesn't effect purchase directly, but we have found that unmarried male spend more than unmarried female. As for age, we have found that age group of 26-35 has the most purchasing power followed by 36-45 and 18-25. Therefore, we think that the store's ideal target customers should be male with age between 26-35, occupation 20 and living in city B for three or more years
