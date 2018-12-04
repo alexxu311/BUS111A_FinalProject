@@ -277,97 +277,128 @@ After taking all variables into consideration, Black Friday spending per person 
 We will now build predicting models to forecast the wallet-spend for each individual customers. 
 
 ```{r}
-#Split the dataset randomly in a 90-10 split for training and validation sets
-set.seed(3)
-validation.index = sample(seq(1,nrow(consumerData)), 
-                          floor(0.10*nrow(consumerData)))
-validationData = consumerData[validation.index, ]
-trainingData = consumerData[-validation.index, ]
-#Run each regression model on the training set and get the prediction error from the validation set
+error <- NULL
+as.data.frame(error)
 
+#Run each regression model on the training set and get the prediction error from the validation set
 prediction.error = function(lm_model, validationData){
   predicted.units = exp(predict(lm_model, validationData))
   error = sqrt(mean((predicted.units-validationData$TotalPurchase)^2))
 }
 
 
-
-
-#model1 only use gender
-lm1 <- lm(log(TotalPurchase) ~ Gender, data = consumerData)
-#model2 add age
-lm2 <- lm(log(TotalPurchase) ~ Gender + Age, data = consumerData)
-#model3 add occupation
-lm3 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation, data = consumerData)
-#model4 add stay in city years
-lm4 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years, data = consumerData)
-#model5 add city categories
-lm5 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category, data = consumerData)
-#model6 add marital status
-lm6 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + Marital_Status + City_Category, data = consumerData)
-#model7 add interactions of marital and gender
-lm7 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Marital_Status*Gender, data = consumerData)
-#model8 add interaction of gender and occupations 
-lm8 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Marital_Status*Gender + Occupation*Gender, data = consumerData)
-#model9 add interaction of city categories and occupations  
-lm9 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Marital_Status*Gender + Occupation*Gender + City_Category*Occupation, data = consumerData)
-#model10 add interaction of city categories and gender
-lm10 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Marital_Status*Gender + Occupation*Gender + City_Category*Occupation + City_Category*Gender, data = consumerData)
-#model11 add interaction of city categories and stay in current city years
-lm11 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Marital_Status*Gender + Occupation*Gender + City_Category*Occupation + City_Category*Gender + City_Category*Stay_In_Current_City_Years, data = consumerData)
-#model12 remove interaction terms of gender&marital status
-lm12 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Occupation*Gender + City_Category*Gender + City_Category*Stay_In_Current_City_Years + City_Category*Occupation, data = consumerData)
-#model13 add interaction of marital status and occupation
-lm13 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Occupation*Gender + City_Category*Gender + City_Category*Stay_In_Current_City_Years + City_Category*Occupation + Marital_Status*Occupation, data = consumerData)
+for(i in c(1:30)){
+  #Split the dataset randomly in a 90-10 split for training and validation sets
+  set.seed(i)
+  validation.index = sample(seq(1,nrow(consumerData)), 
+                          floor(0.10*nrow(consumerData)))
+  validationData = consumerData[validation.index, ]
+  trainingData = consumerData[-validation.index, ]
+  
+  
+  #model1 only use gender
+  lm1 <- lm(log(TotalPurchase) ~ Gender, data = consumerData)
+  #model2 add age
+  lm2 <- lm(log(TotalPurchase) ~ Gender + Age, data = consumerData)
+  #model3 add occupation
+  lm3 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation, data = consumerData)
+  #model4 add stay in city years
+  lm4 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years,     data = consumerData)
+  #model5 add city categories
+  lm5 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years +    City_Category, data = consumerData)
+  #model6 add marital status
+  lm6 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years +    Marital_Status + City_Category, data = consumerData)
+  #model7 add interactions of marital and gender
+  lm7 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years +    City_Category + Marital_Status*Gender, data = consumerData)
+  #model8 add interaction of gender and occupations 
+  lm8 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years +    City_Category + Marital_Status*Gender + Occupation*Gender, data = consumerData)
+  #model9 add interaction of city categories and occupations  
+  lm9 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years +    City_Category + Marital_Status*Gender + Occupation*Gender + City_Category*Occupation,      data   = consumerData)
+  #model10 add interaction of city categories and gender
+  lm10 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years +   City_Category + Marital_Status*Gender + Occupation*Gender + City_Category*Occupation +     City_Category*Gender, data = consumerData)
+  #model11 add interaction of city categories and stay in current city years
+  lm11 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years +   City_Category + Marital_Status*Gender + Occupation*Gender + City_Category*Occupation +     City_Category*Gender + City_Category*Stay_In_Current_City_Years, data = consumerData)
+  #model12 remove interaction terms of gender&marital status
+  lm12 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years +   City_Category + Occupation*Gender + City_Category*Gender +         City_Category*Stay_In_Current_City_Years + City_Category*Occupation, data = consumerData)
+  #model13 add interaction of marital status and occupation
+  lm13 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years +   City_Category + Occupation*Gender + City_Category*Gender +         City_Category*Stay_In_Current_City_Years + City_Category*Occupation +   Marital_Status*Occupation, data = consumerData)
 #model14 add interation of age and gender
 lm14 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Occupation*Gender + City_Category*Gender + City_Category*Stay_In_Current_City_Years + City_Category*Occupation + Marital_Status*Occupation + Age*Gender, data = consumerData)
 #model15 add interation of age and occupations
 lm15 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Occupation*Gender + City_Category*Gender + City_Category*Stay_In_Current_City_Years + City_Category*Occupation + Marital_Status*Occupation + Age*Gender + Age*Occupation, data = consumerData)
 #model16 add purchase number 
 lm16 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + Stay_In_Current_City_Years + City_Category + Occupation*Gender + City_Category*Gender + City_Category*Stay_In_Current_City_Years + City_Category*Occupation + Marital_Status*Occupation + Age*Gender + Age*Occupation + PurchaseNumber, data = consumerData)
+#model17 remove stayincurrent city years,marital status
+lm17 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + City_Category + Occupation*Gender + City_Category*Gender + City_Category*Occupation + Age*Gender + Age*Occupation, data = consumerData)
+#model18 remove gender*age and City_Category*Gender
+lm18 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + City_Category + Occupation*Gender + City_Category*Occupation + Age*Occupation, data = consumerData)
+
+  #calculate prediction errors for every models
+  error$error_model1[i] = prediction.error(lm1, validationData)
+  error$error_model2[i] = prediction.error(lm2, validationData)
+  error$error_model3[i] = prediction.error(lm3, validationData)
+  error$error_model4[i] = prediction.error(lm4, validationData)
+  error$error_model5[i] = prediction.error(lm5, validationData)
+  error$error_model6[i] = prediction.error(lm6, validationData)
+  error$error_model7[i] = prediction.error(lm7, validationData)
+  error$error_model8[i] = prediction.error(lm8, validationData)
+  error$error_model9[i] = prediction.error(lm9, validationData)
+  error$error_model10[i] = prediction.error(lm10, validationData)
+  error$error_model11[i] = prediction.error(lm11, validationData)
+  error$error_model12[i] = prediction.error(lm12, validationData)
+  error$error_model13[i] = prediction.error(lm13, validationData)
+  error$error_model14[i] = prediction.error(lm14, validationData)
+  error$error_model15[i] = prediction.error(lm15, validationData)
+  error$error_model16[i] = prediction.error(lm16, validationData)
+  error$error_model17[i] = prediction.error(lm17, validationData)
+  error$error_model18[i] = prediction.error(lm18, validationData)
+}
 
 
-#calculate prediction errors for every models
-error_model1 = prediction.error(lm1, validationData)
-error_model2 = prediction.error(lm2, validationData)
-error_model3 = prediction.error(lm3, validationData)
-error_model4 = prediction.error(lm4, validationData)
-error_model5 = prediction.error(lm5, validationData)
-error_model6 = prediction.error(lm6, validationData)
-error_model7 = prediction.error(lm7, validationData)
-error_model8 = prediction.error(lm8, validationData)
-error_model9 = prediction.error(lm9, validationData)
-error_model10 = prediction.error(lm10, validationData)
-error_model11 = prediction.error(lm11, validationData)
-error_model12 = prediction.error(lm12, validationData)
-error_model13 = prediction.error(lm13, validationData)
-error_model14 = prediction.error(lm14, validationData)
-error_model15 = prediction.error(lm15, validationData)
-error_model16 = prediction.error(lm16, validationData)
+
+
 
 # Show a table with 2 columns
 data.frame(Names = c("Model1","Model2", "Model3",
                      "Model4", "Model5", "Model6","Model7", "Model8",
-                     "Model9", "Model10", "Model11", "Model12", "Model13", "Model14", "Model15", "Model16"), 
-           Error = c(error_model1,error_model2, error_model3, 
-                     error_model4, error_model5, error_model6,error_model7, error_model8, 
-                     error_model9, error_model10, error_model11, error_model12,    error_model13, error_model14, error_model15, error_model16))
+                     "Model9", "Model10", "Model11", "Model12", "Model13", "Model14", "Model15", "Model16", "Model17", "Model18"), 
+           Error = c(mean(error$error_model1),mean(error$error_model2), mean(error$error_model3), 
+                     mean(error$error_model4), mean(error$error_model5), mean(error$error_model6),mean(error$error_model7),mean(error$error_model8), 
+                     mean(error$error_model9), mean(error$error_model10), mean(error$error_model11), mean(error$error_model12),    mean(error$error_model13), mean(error$error_model14), mean(error$error_model15), mean(error$error_model16), mean(error$error_model17), mean(error$error_model18)))
 ```
 From the result, we can tell that the 15th model gives the least root mean squared error.
 ```{r}
-summary(lm15)
+error <- data.frame(model = rep(names(error), lapply(error, length)),predict_error = unlist(error))
+error <- error[error$model=="error_model1"|error$model=="error_model5"|error$model=="error_model15"|error$model=="error_model",]
+ggplot(error, aes(x=error$predict_error,color=error$model)) + geom_density()+scale_x_continuous(limits = c(-0, 2000000))
+summary(lm18)
+
 ```
 
 ```{r}
+#create a test dataset with all combinations of binary variables
 test <- expand.grid(Gender=levels(consumerData$Gender),Age = levels(consumerData$Age),Occupation = levels(consumerData$Occupation),City_Category = levels(consumerData$City_Category),Stay_In_Current_City_Years = levels(consumerData$Stay_In_Current_City_Years),Marital_Status = levels(consumerData$Marital_Status))
 
-Predict <- predict(lm15,test,se.fit = T)
+#make predictions
+Predict <- predict(lm18,test,se.fit = T)
 test <- cbind(test,"Predicted_value" = Predict$fit,"Predicted_se" = Predict$se.fit)
 
+#create 95%CI and transform the values from log scale back to normal scale
 test$CI_lower <- test$Predicted_value - 1.96*test$Predicted_se
 test$CI_higher <- test$Predicted_value + 1.96*test$Predicted_se
-test$Predicted_value <- exp(test$Predicted_value)
+test$Predicted_value <- exp(test$Predicted_value+test$Predicted_se*test$Predicted_se/2)
 test$CI_lower <- exp(test$CI_lower)
 test$CI_higher <- exp(test$CI_higher)
-```
 
+#exclude the conditions that are rare in oringinal dataset
+test$Freq <-NA
+for(i in 1:(nrow(test)-1)){
+  x <- sum(consumerData[,2]==test[i,1]&consumerData[,3]==test[i,2]&consumerData[,4]==test[i,3]&consumerData[,5]==test[i,4]&consumerData[,6]==test[i,5]&consumerData[,7]==test[i,6])
+  test$Freq[i] <- x 
+}
+test <- test[test$Freq>1,]
+test$Freq<-NULL
+
+test<- test[order(test$Predicted_value,decreasing = T),]
+
+```
