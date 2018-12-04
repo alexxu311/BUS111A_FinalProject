@@ -354,10 +354,6 @@ lm18 <- lm(log(TotalPurchase) ~ Gender + Age + Occupation + City_Category + Occu
   error$error_model18[i] = prediction.error(lm18, validationData)
 }
 
-
-
-
-
 # Show a table with 2 columns
 data.frame(Names = c("Model1","Model2", "Model3",
                      "Model4", "Model5", "Model6","Model7", "Model8",
@@ -369,10 +365,13 @@ data.frame(Names = c("Model1","Model2", "Model3",
 From the result, we can tell that the 15th model gives the least root mean squared error.
 ```{r}
 error <- data.frame(model = rep(names(error), lapply(error, length)),predict_error = unlist(error))
-error <- error[error$model=="error_model1"|error$model=="error_model5"|error$model=="error_model15"|error$model=="error_model",]
-ggplot(error, aes(x=error$predict_error,color=error$model)) + geom_density()+scale_x_continuous(limits = c(-0, 2000000))
+error <- error[error$model=="error_model1"|error$model=="error_model15"|error$model=="error_model18",]
+mu <- error%>%
+      group_by(model)%>%
+      summarise(grp.mean=mean(predict_error))
+ggplot(error, aes(x=error$predict_error,color=error$model)) + geom_density()+scale_x_continuous(limits = c(500000, 1500000)) + ggtitle("Prediction Error Distribution") + xlab("Prediciton Error(RMSE)")+scale_color_discrete(name="Model", labels=c("Model1", "Model15", "Model18"))+ theme(plot.title = element_text(hjust = 0.5,size = 12))+ geom_vline(data=mu, aes(xintercept=grp.mean, color=model),linetype="dashed")
+#Though Model15 gives us the least RMSE, but this model has included most of the variables and all possible interactions, so we suspect that it's overfitting. Thus a to balance bias and variance, we decide to choose Model18 instead.
 summary(lm18)
-
 ```
 
 ```{r}
@@ -396,10 +395,12 @@ for(i in 1:(nrow(test)-1)){
   x <- sum(consumerData[,2]==test[i,1]&consumerData[,3]==test[i,2]&consumerData[,4]==test[i,3]&consumerData[,5]==test[i,4]&consumerData[,6]==test[i,5]&consumerData[,7]==test[i,6])
   test$Freq[i] <- x 
 }
+
+#test$Freq <- test$Freq/5891
+sum(test$Freq*test$Predicted_value,na.rm = T)
+sum(test$Freq*test$CI_lower,na.rm = T)
+sum(test$Freq*test$CI_higher,na.rm = T)
 test <- test[test$Freq>1,]
-test$Freq<-NULL
-
-test<- test[order(test$Predicted_value,decreasing = T),]
-
 ```
+
 #Conclusion: Based on what we observed, we conclude that the main characteristics that influence the customer purchasing behavior are gender, age, occupation and city. And the other variables in the dataset are not able to contribute much to the purchasing analysis of customers. Combining with the results from the regression model and predictive model, we could conclude that customers who are male aging from 51-55, from city B will be the most profitable customers for the retail store in the future. Therefore, the retail store should focus on targeting to this customer segment. Also, the higher purchasing frequency, the higher average dollar purchase dollar made by each customer.  At the same time, the it is better for the retail store to pay some value on the characteristics of customers who are male, aging from 36-40, with occupations 12, 16 and 20. Based on that, the retail store could initiate more aggressive marketing campaigns specifically for male from city A&B in order to increase the customer purchase. Also, since purchasing time plays an important role in our regression model in terms of influencing average customer dollar purchase, the retail store needs to leverage their marketing campaigns during Black Friday to encourage higher purchasing frequencies of each customer to generate more revenues. 
